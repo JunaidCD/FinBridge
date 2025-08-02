@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import StatsCard from '../components/stats-card';
 import LoanCard from '../components/loan-card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function LenderDashboard() {
   const [loanRequests, setLoanRequests] = useState([]);
@@ -14,6 +19,15 @@ export default function LenderDashboard() {
   });
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [filterSettings, setFilterSettings] = useState({
+    creditScore: [600, 850],
+    interestRate: [3, 15],
+    loanAmount: [0.1, 10],
+    duration: [7, 180],
+    newOnly: false,
+    highYieldOnly: false
+  });
 
   const handleFundLoan = (requestId) => {
     // TODO: Integrate with smart contract to fund loan
@@ -42,6 +56,80 @@ export default function LenderDashboard() {
         avgReturn: prev.avgReturn
       }));
     }
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilterSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  // Add this state to store filtered loan requests
+  const [filteredLoanRequests, setFilteredLoanRequests] = useState([]);
+  
+  // Update the applyFilters function
+  const applyFilters = () => {
+    // Apply the filter settings to the loan requests
+    console.log('Applying filters:', filterSettings);
+    
+    const filtered = loanRequests.filter(loan => {
+      // Check credit score range
+      if (loan.creditScore < filterSettings.creditScore[0] || 
+          loan.creditScore > filterSettings.creditScore[1]) {
+        return false;
+      }
+      
+      // Check interest rate range
+      if (parseFloat(loan.interestRate) < filterSettings.interestRate[0] || 
+          parseFloat(loan.interestRate) > filterSettings.interestRate[1]) {
+        return false;
+      }
+      
+      // Check loan amount range
+      if (parseFloat(loan.amount) < filterSettings.loanAmount[0] || 
+          parseFloat(loan.amount) > filterSettings.loanAmount[1]) {
+        return false;
+      }
+      
+      // Check duration range
+      if (parseInt(loan.duration) < filterSettings.duration[0] || 
+          parseInt(loan.duration) > filterSettings.duration[1]) {
+        return false;
+      }
+      
+      // Check new only option
+      if (filterSettings.newOnly) {
+        // Assuming "new" means posted within last 24 hours
+        if (!loan.timeAgo.includes('hour') && !loan.timeAgo.includes('minute')) {
+          return false;
+        }
+      }
+      
+      // Check high yield option
+      if (filterSettings.highYieldOnly) {
+        // Assuming high yield means above 5%
+        if (parseFloat(loan.interestRate) < 5) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    setFilteredLoanRequests(filtered);
+    setIsFilterDialogOpen(false);
+  };
+
+  const resetFilters = () => {
+    setFilterSettings({
+      creditScore: [600, 850],
+      interestRate: [3, 15],
+      loanAmount: [0.1, 10],
+      duration: [7, 180],
+      newOnly: false,
+      highYieldOnly: false
+    });
   };
 
   // Sample loan requests for demonstration
@@ -174,30 +262,48 @@ export default function LenderDashboard() {
                 Loan Marketplace
               </h2>
               <div className="flex items-center space-x-4">
-                <select 
-                  className="bg-background border border-border rounded-lg px-3 py-2 text-sm"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                <Button 
+                  onClick={() => setIsFilterDialogOpen(true)}
+                  className="bg-background border border-border hover:border-primary rounded-lg px-4 py-2 text-sm flex items-center"
                 >
-                  <option value="all">All Requests</option>
-                  <option value="high-score">High Credit Score</option>
-                  <option value="low-risk">Low Risk</option>
-                  <option value="high-yield">High Yield</option>
-                </select>
-                <select 
-                  className="bg-background border border-border rounded-lg px-3 py-2 text-sm"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="amount-high">Highest Amount</option>
-                  <option value="amount-low">Lowest Amount</option>
-                  <option value="interest-high">Highest Interest</option>
-                </select>
+                  <i className="fas fa-filter mr-2"></i>
+                  Filter Options
+                </Button>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px] bg-background border border-border hover:border-primary transition-colors">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border border-border">
+                    <SelectItem value="newest" className="cursor-pointer">
+                      <div className="flex items-center">
+                        <i className="fas fa-clock text-primary mr-2"></i>
+                        Newest First
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="amount-high" className="cursor-pointer">
+                      <div className="flex items-center">
+                        <i className="fas fa-sort-amount-up text-green-400 mr-2"></i>
+                        Highest Amount
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="amount-low" className="cursor-pointer">
+                      <div className="flex items-center">
+                        <i className="fas fa-sort-amount-down text-blue-400 mr-2"></i>
+                        Lowest Amount
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="interest-high" className="cursor-pointer">
+                      <div className="flex items-center">
+                        <i className="fas fa-percentage text-yellow-400 mr-2"></i>
+                        Highest Interest
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             
-            {loanRequests.length === 0 ? (
+            {filteredLoanRequests.length === 0 ? (
               /* Enhanced Empty State */
               <div className="text-center py-16">
                 <div className="relative mb-8">
@@ -218,7 +324,7 @@ export default function LenderDashboard() {
             ) : (
               /* Enhanced Loan Requests List */
               <div className="space-y-6">
-                {loanRequests.map((request, index) => (
+                {filteredLoanRequests.map((request, index) => (
                   <div key={request.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="glass-card rounded-2xl p-6 hover:glow-border-animate transition-all duration-300 group">
                       <div className="flex justify-between items-start mb-4">
@@ -396,6 +502,191 @@ export default function LenderDashboard() {
           </div>
         )}
       </div>
+
+      {/* Filter Dialog */}
+      <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+        <DialogContent className="glass-card-strong border-primary/20 max-w-md relative overflow-hidden">
+          {/* Background gradient effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-xl -mr-16 -mt-16 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-secondary/10 rounded-full blur-xl -ml-16 -mb-16 pointer-events-none"></div>
+          
+          <DialogHeader className="relative z-10">
+            <DialogTitle className="text-xl font-bold flex items-center">
+              <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center mr-3">
+                <i className="fas fa-filter text-primary"></i>
+              </div>
+              Filter Loan Requests
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4 relative z-10">
+            <Tabs defaultValue="criteria" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-background/50 p-1 rounded-xl">
+                <TabsTrigger value="criteria" className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-200">
+                  <i className="fas fa-sliders-h mr-2"></i>
+                  Filter Criteria
+                </TabsTrigger>
+                <TabsTrigger value="options" className="rounded-lg data-[state=active]:bg-secondary/20 data-[state=active]:text-secondary transition-all duration-200">
+                  <i className="fas fa-cog mr-2"></i>
+                  Options
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="criteria" className="space-y-6 animate-fade-in">
+                <div className="glass-card p-4 rounded-xl">
+                  <div className="flex justify-between mb-2">
+                    <label className="text-sm font-medium flex items-center">
+                      <i className="fas fa-star text-yellow-400 mr-2"></i>
+                      Credit Score
+                    </label>
+                    <span className="text-sm bg-primary/20 text-primary px-2 py-1 rounded-md font-medium">
+                      {filterSettings.creditScore[0]} - {filterSettings.creditScore[1]}
+                    </span>
+                  </div>
+                  <Slider
+                    value={filterSettings.creditScore}
+                    min={300}
+                    max={850}
+                    step={10}
+                    onValueChange={(value) => handleFilterChange('creditScore', value)}
+                    className="my-4"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Poor</span>
+                    <span>Fair</span>
+                    <span>Good</span>
+                    <span>Excellent</span>
+                  </div>
+                </div>
+                
+                <div className="glass-card p-4 rounded-xl">
+                  <div className="flex justify-between mb-2">
+                    <label className="text-sm font-medium flex items-center">
+                      <i className="fas fa-percentage text-green-400 mr-2"></i>
+                      Interest Rate
+                    </label>
+                    <span className="text-sm bg-green-400/20 text-green-400 px-2 py-1 rounded-md font-medium">
+                      {filterSettings.interestRate[0]}% - {filterSettings.interestRate[1]}%
+                    </span>
+                  </div>
+                  <Slider
+                    value={filterSettings.interestRate}
+                    min={1}
+                    max={20}
+                    step={0.5}
+                    onValueChange={(value) => handleFilterChange('interestRate', value)}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div className="glass-card p-4 rounded-xl">
+                  <div className="flex justify-between mb-2">
+                    <label className="text-sm font-medium flex items-center">
+                      <i className="fab fa-ethereum text-blue-400 mr-2"></i>
+                      Loan Amount
+                    </label>
+                    <span className="text-sm bg-blue-400/20 text-blue-400 px-2 py-1 rounded-md font-medium">
+                      {filterSettings.loanAmount[0]} - {filterSettings.loanAmount[1]} ETH
+                    </span>
+                  </div>
+                  <Slider
+                    value={filterSettings.loanAmount}
+                    min={0.1}
+                    max={10}
+                    step={0.1}
+                    onValueChange={(value) => handleFilterChange('loanAmount', value)}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div className="glass-card p-4 rounded-xl">
+                  <div className="flex justify-between mb-2">
+                    <label className="text-sm font-medium flex items-center">
+                      <i className="fas fa-calendar-alt text-purple-400 mr-2"></i>
+                      Duration
+                    </label>
+                    <span className="text-sm bg-purple-400/20 text-purple-400 px-2 py-1 rounded-md font-medium">
+                      {filterSettings.duration[0]} - {filterSettings.duration[1]} days
+                    </span>
+                  </div>
+                  <Slider
+                    value={filterSettings.duration}
+                    min={1}
+                    max={365}
+                    step={1}
+                    onValueChange={(value) => handleFilterChange('duration', value)}
+                    className="my-4"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Short-term</span>
+                    <span>Medium</span>
+                    <span>Long-term</span>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="options" className="space-y-4 animate-fade-in">
+                <div className="glass-card p-4 rounded-xl">
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="font-medium flex items-center">
+                        <i className="fas fa-clock text-blue-400 mr-2"></i>
+                        Show New Requests Only
+                      </p>
+                      <p className="text-sm text-muted-foreground ml-6">Display only requests posted in the last 24 hours</p>
+                    </div>
+                    <Switch
+                      checked={filterSettings.newOnly}
+                      onCheckedChange={(checked) => handleFilterChange('newOnly', checked)}
+                      className="data-[state=checked]:bg-blue-400"
+                    />
+                  </div>
+                </div>
+                
+                <div className="glass-card p-4 rounded-xl">
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="font-medium flex items-center">
+                        <i className="fas fa-chart-line text-green-400 mr-2"></i>
+                        High Yield Opportunities
+                      </p>
+                      <p className="text-sm text-muted-foreground ml-6">Show loans with above-average interest rates</p>
+                    </div>
+                    <Switch
+                      checked={filterSettings.highYieldOnly}
+                      onCheckedChange={(checked) => handleFilterChange('highYieldOnly', checked)}
+                      className="data-[state=checked]:bg-green-400"
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-muted-foreground">More filter options coming soon</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+          
+          <DialogFooter className="flex justify-between mt-6 relative z-10">
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="border-border hover:bg-background/50 flex items-center"
+            >
+              <i className="fas fa-undo-alt mr-2"></i>
+              Reset Filters
+            </Button>
+            <Button
+              onClick={applyFilters}
+              className="button-advanced bg-gradient-to-r from-primary to-secondary flex items-center"
+            >
+              <i className="fas fa-check mr-2"></i>
+              Apply Filters
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

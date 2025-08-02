@@ -44,7 +44,7 @@ export default function BorrowerDashboard() {
       <div className="mb-10 animate-fade-in">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-4xl font-bold mb-2 text-shimmer">Borrower Dashboard</h1>
+            <h1 className="text-4xl font-bold mb-2 text-primary" style={{textShadow: '0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--secondary))'}}>Borrower Dashboard</h1>
             <p className="text-muted-foreground text-lg">Manage your loan requests and track active loans</p>
           </div>
           <div className="hidden md:flex items-center space-x-4">
@@ -177,12 +177,18 @@ export default function BorrowerDashboard() {
             My Loan Portfolio
           </h2>
           <div className="flex items-center space-x-4">
-            <select className="bg-background border border-border rounded-lg px-3 py-2 text-sm">
-              <option>All Status</option>
-              <option>Pending</option>
-              <option>Active</option>
-              <option>Completed</option>
-            </select>
+            {/* Professional Status Filter Dropdown */}
+            <div className="relative">
+              <select className="bg-card/50 border border-border/50 rounded-lg px-4 py-2.5 text-sm font-medium text-foreground hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 focus:outline-none transition-all duration-200 cursor-pointer appearance-none pr-10 min-w-[140px] backdrop-blur-sm">
+                <option value="all" className="bg-background text-foreground">All Status</option>
+                <option value="pending" className="bg-background text-foreground">Pending</option>
+                <option value="active" className="bg-background text-foreground">Active</option>
+                <option value="completed" className="bg-background text-foreground">Completed</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <i className="fas fa-chevron-down text-muted-foreground text-xs"></i>
+              </div>
+            </div>
             <Button className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30">
               <i className="fas fa-download mr-2"></i>
               Export

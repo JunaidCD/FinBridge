@@ -77,7 +77,7 @@ export default function Home() {
               </span>
             </div>
             <h1 className="text-6xl md:text-8xl font-bold mb-6 text-glow">
-              <span className="text-shimmer">Fin</span>
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-extrabold">Fin</span>
               <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">Bridge</span>
             </h1>
             <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mb-6 rounded-full"></div>
@@ -93,18 +93,33 @@ export default function Home() {
           {/* Live Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 animate-fade-in">
             <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center">
+                  <i className="fas fa-file-contract text-primary text-4xl"></i>
+                </div>
+              </div>
               <div className="text-3xl font-bold text-primary mb-2">
                 {stats.totalLoans.toLocaleString()}
               </div>
               <div className="text-muted-foreground">Total Loans</div>
             </div>
             <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-green-400/20 rounded-2xl flex items-center justify-center">
+                  <i className="fas fa-lock text-green-400 text-4xl"></i>
+                </div>
+              </div>
               <div className="text-3xl font-bold text-green-400 mb-2">
                 ${stats.totalValue}M
               </div>
               <div className="text-muted-foreground">Volume Locked</div>
             </div>
             <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-secondary/20 rounded-2xl flex items-center justify-center">
+                  <i className="fas fa-user-friends text-secondary text-4xl"></i>
+                </div>
+              </div>
               <div className="text-3xl font-bold text-secondary mb-2">
                 {stats.activeUsers.toLocaleString()}
               </div>
@@ -133,7 +148,7 @@ export default function Home() {
                 {[
                   { icon: 'fa-clock', text: 'Instant loan approval' },
                   { icon: 'fa-percentage', text: 'Competitive interest rates' },
-                  { icon: 'fa-shield-check', text: 'Smart contract security' },
+                  { icon: 'fa-shield', text: 'Smart contract security' },
                   { icon: 'fa-coins', text: 'Flexible repayment terms' }
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center group-hover:translate-x-2 transition-transform duration-300">
@@ -200,50 +215,45 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-card/50 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold mb-6 text-shimmer">Why Choose FinBridge?</h2>
+            <h2 className="text-5xl font-bold mb-6 text-primary" style={{textShadow: '0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--secondary))'}}>Why Choose FinBridge?</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Built on cutting-edge blockchain technology with advanced features designed for the modern DeFi ecosystem
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-10">
-            {[
-              {
-                icon: 'fa-shield-check',
-                title: 'Military-Grade Security',
-                description: 'Multi-signature wallets, time-locked contracts, and comprehensive audit trails ensure your funds are protected.',
-                color: 'primary',
-                delay: '0s'
-              },
-              {
-                icon: 'fa-bolt',
-                title: 'Lightning Fast',
-                description: 'Instant loan matching, real-time settlements, and optimized gas usage for the fastest DeFi experience.',
-                color: 'secondary',
-                delay: '0.2s'
-              },
-              {
-                icon: 'fa-brain',
-                title: 'AI-Powered Matching',
-                description: 'Advanced algorithms analyze risk profiles and match borrowers with optimal lenders automatically.',
-                color: 'green-400',
-                delay: '0.4s'
-              }
-            ].map((feature, index) => (
-              <div 
-                key={index}
-                className="glass-card p-8 rounded-3xl hover:glow-border-animate transition-all duration-500 group animate-fade-in card-3d"
-                style={{ animationDelay: feature.delay }}
-              >
-                <div className="text-center">
-                  <div className={`w-16 h-16 bg-${feature.color}/20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                    <i className={`fas ${feature.icon} text-${feature.color} text-2xl`}></i>
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-white">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+            {/* Military-Grade Security */}
+            <div className="glass-card p-8 rounded-3xl hover:glow-border-animate transition-all duration-500 group animate-fade-in card-3d" style={{ animationDelay: '0s' }}>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-lock text-primary text-4xl"></i>
                 </div>
+                <h3 className="text-2xl font-bold mb-4 text-white">Military-Grade Security</h3>
+                <p className="text-muted-foreground leading-relaxed">Multi-signature wallets, time-locked contracts, and comprehensive audit trails ensure your funds are protected.</p>
               </div>
-            ))}
+            </div>
+            
+            {/* Lightning Fast */}
+            <div className="glass-card p-8 rounded-3xl hover:glow-border-animate transition-all duration-500 group animate-fade-in card-3d" style={{ animationDelay: '0.2s' }}>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-secondary/20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-bolt text-secondary text-4xl"></i>
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white">Lightning Fast</h3>
+                <p className="text-muted-foreground leading-relaxed">Instant loan matching, real-time settlements, and optimized gas usage for the fastest DeFi experience.</p>
+              </div>
+            </div>
+            
+            {/* AI-Powered Matching */}
+            <div className="glass-card p-8 rounded-3xl hover:glow-border-animate transition-all duration-500 group animate-fade-in card-3d" style={{ animationDelay: '0.4s' }}>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-400/20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <i className="fas fa-brain text-green-400 text-4xl"></i>
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-white">AI-Powered Matching</h3>
+                <p className="text-muted-foreground leading-relaxed">Advanced algorithms analyze risk profiles and match borrowers with optimal lenders automatically.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -252,7 +262,7 @@ export default function Home() {
       <section className="py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
           <div className="glass-card-strong p-12 rounded-3xl">
-            <h2 className="text-4xl font-bold mb-6 text-shimmer">Ready to Get Started?</h2>
+            <h2 className="text-4xl font-bold mb-6 text-primary" style={{textShadow: '0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--secondary))'}}>Ready to Get Started?</h2>
             <p className="text-xl text-muted-foreground mb-8">
               Join thousands of users already earning and borrowing on FinBridge
             </p>

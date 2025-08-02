@@ -29,44 +29,50 @@ export default function Navigation() {
       isScrolled ? 'backdrop-blur-xl bg-card/80' : 'bg-card/30'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-18">
-          {/* Logo */}
-          <Link href="/">
-            <div className="flex items-center space-x-3 cursor-pointer group">
-              <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
-                  <i className="fas fa-bridge-water text-xl text-white"></i>
+        <div className="flex items-center h-18 relative">
+          {/* Logo - Left */}
+          <div className="flex-shrink-0">
+            <Link href="/">
+              <div className="flex items-center space-x-3 cursor-pointer group">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                    <i className="fas fa-bridge-water text-xl text-white"></i>
+                  </div>
+                  <div className="absolute -inset-1 bg-gradient-to-br from-primary to-secondary rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
                 </div>
-                <div className="absolute -inset-1 bg-gradient-to-br from-primary to-secondary rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    FinBridge
+                  </h1>
+                  <p className="text-xs text-muted-foreground -mt-1">DeFi Lending</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-shimmer">
-                  FinBridge
-                </h1>
-                <p className="text-xs text-muted-foreground -mt-1">DeFi Lending</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link key={item.path} href={item.path}>
-                <button className={`relative px-4 py-2 rounded-lg transition-all duration-300 group ${
-                  location === item.path 
-                    ? 'text-white bg-primary/20 border border-primary/30' 
-                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                }`}>
-                  <i className={`fas ${item.icon} mr-2`}></i>
-                  {item.label}
-                  {location === item.path && (
-                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-secondary"></div>
-                  )}
-                </button>
-              </Link>
-            ))}
-            
-            {/* Wallet Connection */}
+          {/* Desktop Navigation - Center */}
+          <div className="hidden md:flex items-center justify-center flex-1">
+            <div className="flex items-center space-x-8">
+              {navItems.map((item) => (
+                <Link key={item.path} href={item.path}>
+                  <button className={`relative px-6 py-3 rounded-lg transition-all duration-300 group ${
+                    location === item.path 
+                      ? 'text-white bg-primary/20 border border-primary/30' 
+                      : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                  }`}>
+                    <i className={`fas ${item.icon} mr-2`}></i>
+                    {item.label}
+                    {location === item.path && (
+                      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-secondary"></div>
+                    )}
+                  </button>
+                </Link>
+              ))}
+            </div>
+          </div>
+          
+          {/* Wallet Connection - Right */}
+          <div className="hidden md:flex items-center flex-shrink-0">
             {account ? (
               <div className="flex items-center space-x-4 glass-card px-4 py-2 rounded-xl">
                 <div className="flex items-center space-x-2">
