@@ -8,6 +8,7 @@ import Navigation from "./components/navigation.jsx";
 import Home from "./pages/home.jsx";
 import BorrowerDashboard from "./pages/borrower-dashboard.jsx";
 import LenderDashboard from "./pages/lender-dashboard.jsx";
+import RepayLoan from "./pages/repay-loan.jsx";
 import NotFound from "./pages/not-found.jsx";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/borrower" component={BorrowerDashboard} />
       <Route path="/lender" component={LenderDashboard} />
+      <Route path="/repay" component={RepayLoan} />
       <Route component={NotFound} />
     </Switch>
   );
