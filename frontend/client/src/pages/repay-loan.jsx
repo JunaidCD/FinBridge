@@ -1,0 +1,372 @@
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useWeb3 } from '../context/web3-context';
+
+export default function RepayLoan() {
+  const [loans, setLoans] = useState([]);
+  const [selectedLoan, setSelectedLoan] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [repaymentAmount, setRepaymentAmount] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { account } = useWeb3();
+
+  // Mock data for outstanding loans
+  useEffect(() => {
+    setLoans([
+             {
+         id: 1,
+         lenderWallet: '0x1234...5678',
+         borrowedAmount: 2.5,
+         interestRate: 8.5,
+         dueDate: '2025-10-31',
+         remainingBalance: 1.8,
+         status: 'active',
+         loanDate: '2025-01-15',
+         monthlyPayment: 0.3
+       },
+       {
+         id: 2,
+         lenderWallet: '0x9876...4321',
+         borrowedAmount: 1.2,
+         interestRate: 6.2,
+         dueDate: '2025-12-31',
+         remainingBalance: 0.9,
+         status: 'active',
+         loanDate: '2025-02-01',
+         monthlyPayment: 0.15
+       },
+       {
+         id: 3,
+         lenderWallet: '0x5555...6666',
+         borrowedAmount: 3.0,
+         interestRate: 7.8,
+         dueDate: '2025-07-31',
+         remainingBalance: 2.1,
+         status: 'overdue',
+         loanDate: '2025-01-01',
+         monthlyPayment: 0.4
+       }
+    ]);
+  }, []);
+
+  // Calculate summary stats
+  const summaryStats = {
+    totalLoans: loans.length,
+    totalRemainingBalance: loans.reduce((sum, loan) => sum + loan.remainingBalance, 0).toFixed(2),
+    nextDueDate: loans.length > 0 ? loans.reduce((earliest, loan) => {
+      if (!earliest || new Date(loan.dueDate) < new Date(earliest)) {
+        return loan.dueDate;
+      }
+      return earliest;
+    }, null) : 'N/A'
+  };
+
+  const handleRepayClick = (loan) => {
+    setSelectedLoan(loan);
+    setRepaymentAmount(loan.remainingBalance.toString());
+    setIsModalOpen(true);
+  };
+
+  const handleRepayment = async () => {
+    if (!selectedLoan || !repaymentAmount) return;
+
+    setIsProcessing(true);
+    
+    try {
+      // Simulate smart contract interaction
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update loan data
+      const updatedLoans = loans.map(loan => {
+        if (loan.id === selectedLoan.id) {
+          const newBalance = Math.max(0, loan.remainingBalance - parseFloat(repaymentAmount));
+          return {
+            ...loan,
+            remainingBalance: newBalance,
+            status: newBalance === 0 ? 'completed' : loan.status
+          };
+        }
+        return loan;
+      });
+      
+      setLoans(updatedLoans);
+      setIsModalOpen(false);
+      setSelectedLoan(null);
+      setRepaymentAmount('');
+      
+      // Show success message (you can integrate with toast system)
+      console.log('Repayment successful!');
+    } catch (error) {
+      console.error('Repayment failed:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active': return 'text-green-400';
+      case 'overdue': return 'text-red-400';
+      case 'completed': return 'text-blue-400';
+      default: return 'text-muted-foreground';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'active': return 'fas fa-clock';
+      case 'overdue': return 'fas fa-exclamation-triangle';
+      case 'completed': return 'fas fa-check-circle';
+      default: return 'fas fa-question-circle';
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Page Header */}
+      <div className="mb-10 animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 text-primary" style={{textShadow: '0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--secondary))'}}>
+              Repay Loan
+            </h1>
+            <p className="text-muted-foreground text-lg">Manage your outstanding loans and make repayments</p>
+          </div>
+          
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm mb-1">Total Loans Taken</p>
+                <p className="text-2xl font-bold text-primary">{summaryStats.totalLoans}</p>
+              </div>
+              <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
+                <i className="fas fa-wallet text-primary text-xl"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm mb-1">Total Remaining Balance</p>
+                <p className="text-2xl font-bold text-secondary">{summaryStats.totalRemainingBalance} ETH</p>
+              </div>
+              <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
+                <i className="fas fa-balance-scale text-secondary text-xl"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm mb-1">Next Due Date</p>
+                <p className="text-2xl font-bold text-green-400">{summaryStats.nextDueDate}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-400/20 rounded-xl flex items-center justify-center">
+                <i className="fas fa-calendar-alt text-green-400 text-xl"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Outstanding Loans Table */}
+      <div className="glass-card-strong rounded-3xl p-8">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-bold flex items-center">
+            <i className="fas fa-credit-card text-primary mr-3"></i>
+            Outstanding Loans
+          </h2>
+          <div className="flex items-center space-x-4">
+            <div className="glass-card px-4 py-2 rounded-xl">
+              <span className="text-sm text-muted-foreground">
+                {loans.filter(loan => loan.status === 'active' || loan.status === 'overdue').length} Active Loans
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {loans.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="relative mb-8">
+              <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-slow">
+                <i className="fas fa-credit-card text-4xl text-primary"></i>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-xl"></div>
+            </div>
+            <h3 className="text-2xl font-bold mb-4 text-white">No Outstanding Loans</h3>
+            <p className="text-muted-foreground mb-8 text-lg max-w-md mx-auto">
+              You don't have any outstanding loans to repay. Great job staying on top of your finances!
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Loan ID</TableHead>
+                  <TableHead>Lender Wallet</TableHead>
+                  <TableHead>Borrowed Amount (ETH)</TableHead>
+                  <TableHead>Interest Rate</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Remaining Balance</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Repay Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loans.map((loan) => (
+                  <TableRow key={loan.id} className="hover:bg-white/5 transition-colors">
+                    <TableCell className="font-medium">#{loan.id}</TableCell>
+                    <TableCell className="font-mono text-sm">{loan.lenderWallet}</TableCell>
+                    <TableCell>{loan.borrowedAmount} ETH</TableCell>
+                    <TableCell>{loan.interestRate}%</TableCell>
+                    <TableCell>{loan.dueDate}</TableCell>
+                    <TableCell className="font-semibold">{loan.remainingBalance} ETH</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <i className={`${getStatusIcon(loan.status)} ${getStatusColor(loan.status)}`}></i>
+                        <span className={`capitalize ${getStatusColor(loan.status)}`}>
+                          {loan.status}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => handleRepayClick(loan)}
+                        disabled={loan.status === 'completed'}
+                        className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 px-4 py-2 rounded-xl text-sm font-medium"
+                      >
+                        <i className="fas fa-credit-card mr-2"></i>
+                        Repay Now
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+
+      {/* Repayment Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="glass-card-strong border-2 border-primary/20 rounded-2xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-white flex items-center">
+              <i className="fas fa-credit-card text-primary mr-3"></i>
+              Repay Loan #{selectedLoan?.id}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Enter the amount you want to repay for this loan.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Loan Details */}
+            <div className="glass-card p-4 rounded-xl">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Lender</p>
+                  <p className="font-mono">{selectedLoan?.lenderWallet}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Interest Rate</p>
+                  <p className="font-semibold">{selectedLoan?.interestRate}%</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Due Date</p>
+                  <p className="font-semibold">{selectedLoan?.dueDate}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Remaining Balance</p>
+                  <p className="font-semibold text-primary">{selectedLoan?.remainingBalance} ETH</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Repayment Amount Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">Repayment Amount (ETH)</label>
+              <input
+                type="number"
+                value={repaymentAmount}
+                onChange={(e) => setRepaymentAmount(e.target.value)}
+                placeholder="Enter amount to repay"
+                className="w-full px-4 py-3 bg-background/50 border border-border/50 rounded-xl text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                min="0"
+                max={selectedLoan?.remainingBalance}
+                step="0.01"
+              />
+              <p className="text-xs text-muted-foreground">
+                Maximum: {selectedLoan?.remainingBalance} ETH
+              </p>
+            </div>
+
+            {/* Estimated Transaction */}
+            <div className="glass-card p-4 rounded-xl">
+              <h4 className="font-semibold mb-2 text-white">Transaction Summary</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Repayment Amount:</span>
+                  <span className="font-semibold">{repaymentAmount || '0'} ETH</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Gas Fee (estimated):</span>
+                  <span className="font-semibold">0.005 ETH</span>
+                </div>
+                <div className="border-t border-border/50 pt-2 flex justify-between">
+                  <span className="text-white font-semibold">Total:</span>
+                  <span className="text-primary font-bold">
+                    {(parseFloat(repaymentAmount || 0) + 0.005).toFixed(3)} ETH
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              className="border-border/50 hover:bg-white/5"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRepayment}
+              disabled={isProcessing || !repaymentAmount || parseFloat(repaymentAmount) <= 0}
+              className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 px-6 py-2"
+            >
+              {isProcessing ? (
+                <>
+                  <i className="fas fa-spinner animate-spin mr-2"></i>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-credit-card mr-2"></i>
+                  Confirm Payment
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+} 
