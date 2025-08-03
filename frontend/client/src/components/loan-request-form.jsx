@@ -182,66 +182,26 @@ export default function LoanRequestForm({ onSubmit }) {
           </div>
         </div>
         
-        {/* Duration and Collateral */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label className="flex items-center text-sm font-medium">
-              <i className="fas fa-clock text-blue-400 mr-2"></i>
-              Loan Duration
-            </Label>
-            <Select value={formData.duration} onValueChange={(value) => handleChange('duration', value)}>
-              <SelectTrigger className="glass-card border-border focus:border-primary h-12">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">7 days (Short-term)</SelectItem>
-                <SelectItem value="14">14 days</SelectItem>
-                <SelectItem value="30">30 days (Popular)</SelectItem>
-                <SelectItem value="60">60 days</SelectItem>
-                <SelectItem value="90">90 days</SelectItem>
-                <SelectItem value="180">180 days (Long-term)</SelectItem>
-                <SelectItem value="365">365 days (Extended)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="flex items-center text-sm font-medium">
-              <i className="fas fa-shield-alt text-green-400 mr-2"></i>
-              Collateral Type
-            </Label>
-            <Select value={formData.collateral} onValueChange={(value) => handleChange('collateral', value)}>
-              <SelectTrigger className="glass-card border-border focus:border-primary h-12">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ETH">
-                  <div className="flex items-center">
-                    <i className="fab fa-ethereum mr-2"></i>
-                    ETH (Most Popular)
-                  </div>
-                </SelectItem>
-                <SelectItem value="USDC">
-                  <div className="flex items-center">
-                    <i className="fas fa-coins mr-2"></i>
-                    USDC (Stable)
-                  </div>
-                </SelectItem>
-                <SelectItem value="USDT">
-                  <div className="flex items-center">
-                    <i className="fas fa-coins mr-2"></i>
-                    USDT (Stable)
-                  </div>
-                </SelectItem>
-                <SelectItem value="DAI">
-                  <div className="flex items-center">
-                    <i className="fas fa-coins mr-2"></i>
-                    DAI (Decentralized)
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Duration */}
+        <div className="space-y-2">
+          <Label className="flex items-center text-sm font-medium">
+            <i className="fas fa-clock text-blue-400 mr-2"></i>
+            Loan Duration
+          </Label>
+          <Select value={formData.duration} onValueChange={(value) => handleChange('duration', value)}>
+            <SelectTrigger className="glass-card border-border focus:border-primary h-12">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 days (Short-term)</SelectItem>
+              <SelectItem value="14">14 days</SelectItem>
+              <SelectItem value="30">30 days (Popular)</SelectItem>
+              <SelectItem value="60">60 days</SelectItem>
+              <SelectItem value="90">90 days</SelectItem>
+              <SelectItem value="180">180 days (Long-term)</SelectItem>
+              <SelectItem value="365">365 days (Extended)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Loan Calculations */}
