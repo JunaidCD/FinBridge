@@ -22,6 +22,7 @@ export default function Navigation() {
     { path: '/', label: 'Home', icon: 'fa-home' },
     { path: '/borrower', label: 'Borrow', icon: 'fa-hand-holding-dollar' },
     { path: '/lender', label: 'Lend', icon: 'fa-coins' },
+    { path: '/repay', label: 'Repay Loan', icon: 'fa-credit-card' },
   ];
 
   return (
