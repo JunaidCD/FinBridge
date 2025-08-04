@@ -7,7 +7,7 @@ export default function Navigation() {
   const [location] = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { account, connectWallet, isConnecting } = useWeb3();
+  const { account, connectWallet, isConnecting, isMetaMaskInstalled } = useWeb3();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +24,24 @@ export default function Navigation() {
     { path: '/lender', label: 'Lend', icon: 'fa-coins' },
     { path: '/repay', label: 'Repay Loan', icon: 'fa-credit-card' },
   ];
+
+  const handleConnectWallet = async () => {
+    console.log('Navigation: Connect wallet button clicked');
+    try {
+      await connectWallet();
+    } catch (error) {
+      console.error('Error in navigation connect wallet:', error);
+    }
+  };
+
+  // Debug info - you can remove this later
+  useEffect(() => {
+    console.log('Navigation Debug Info:');
+    console.log('- isMetaMaskInstalled:', isMetaMaskInstalled);
+    console.log('- account:', account);
+    console.log('- isConnecting:', isConnecting);
+    console.log('- window.ethereum:', typeof window.ethereum);
+  }, [isMetaMaskInstalled, account, isConnecting]);
 
   return (
     <nav className={`glass-card-strong sticky top-0 z-50 transition-all duration-300 ${
@@ -93,15 +111,21 @@ export default function Navigation() {
               </div>
             ) : (
               <Button 
-                onClick={connectWallet}
+                onClick={handleConnectWallet}
                 disabled={isConnecting}
                 className="button-advanced bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 px-6 py-3 rounded-xl font-medium"
+                title={!isMetaMaskInstalled ? "Install MetaMask to connect your wallet" : "Click to connect your MetaMask wallet"}
               >
                 <i className="fab fa-ethereum mr-2"></i>
                 {isConnecting ? (
                   <>
                     <i className="fas fa-spinner animate-spin mr-2"></i>
                     Connecting...
+                  </>
+                ) : !isMetaMaskInstalled ? (
+                  <>
+                    <i className="fas fa-download mr-2"></i>
+                    Install MetaMask
                   </>
                 ) : (
                   'Connect Wallet'
@@ -159,15 +183,21 @@ export default function Navigation() {
                   </div>
                 ) : (
                   <Button 
-                    onClick={connectWallet}
+                    onClick={handleConnectWallet}
                     disabled={isConnecting}
                     className="w-full button-advanced bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 py-3 rounded-xl font-medium"
+                    title={!isMetaMaskInstalled ? "Install MetaMask to connect your wallet" : "Click to connect your MetaMask wallet"}
                   >
                     <i className="fab fa-ethereum mr-2"></i>
                     {isConnecting ? (
                       <>
                         <i className="fas fa-spinner animate-spin mr-2"></i>
                         Connecting...
+                      </>
+                    ) : !isMetaMaskInstalled ? (
+                      <>
+                        <i className="fas fa-download mr-2"></i>
+                        Install MetaMask
                       </>
                     ) : (
                       'Connect Wallet'
