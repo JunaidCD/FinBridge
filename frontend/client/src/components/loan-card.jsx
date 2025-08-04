@@ -1,6 +1,12 @@
 import { Button } from '@/components/ui/button';
 
 export default function LoanCard({ loan, type, onFund }) {
+  const truncateAddress = (address) => {
+    if (!address) return '0x1234...5678';
+    if (address.length <= 10) return address;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending':
@@ -56,7 +62,7 @@ export default function LoanCard({ loan, type, onFund }) {
             {type === 'borrower' ? 'Lender' : 'Borrower'}
           </span>
           <span className="font-mono text-xs">
-            {loan.lender || loan.borrower || '0x1234...5678'}
+            {truncateAddress(loan.lender || loan.borrower)}
           </span>
         </div>
         <div>

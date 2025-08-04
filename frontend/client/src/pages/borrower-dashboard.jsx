@@ -13,10 +13,10 @@ export default function BorrowerDashboard() {
   const exportDropdownRef = useRef(null);
   const statusDropdownRef = useRef(null);
   const [stats, setStats] = useState({
-    totalBorrowed: '0.00',
-    activeLoans: 0,
-    totalRepaid: '0.00',
-    creditScore: 750
+    totalBorrowed: '34.7',
+    activeLoans: 2,
+    totalRepaid: '36.84',
+    creditScore: 850
   });
 
   const handleLoanRequest = (loanData) => {
@@ -52,24 +52,28 @@ export default function BorrowerDashboard() {
         amount: 5000,
         purpose: "Business Expansion",
         interestRate: 8.5,
-        term: 12,
+        duration: 90,
         status: "active",
         monthlyPayment: 435.85,
         nextPayment: "2024-02-15",
         totalPaid: 1743.40,
-        remainingBalance: 3256.60
+        remainingBalance: 3256.60,
+        lender: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b7",
+        dueDate: "September 30, 2025"
       },
       {
         id: 2,
         amount: 2500,
         purpose: "Equipment Purchase",
         interestRate: 7.2,
-        term: 6,
+        duration: 150,
         status: "pending",
         monthlyPayment: 428.33,
         nextPayment: "N/A",
         totalPaid: 0,
-        remainingBalance: 2500
+        remainingBalance: 2500,
+        lender: "0x8ba1f109551bD432803012645Hac136c772c3c7d",
+        dueDate: "November 30, 2025"
       }
     ]);
   }, []);
