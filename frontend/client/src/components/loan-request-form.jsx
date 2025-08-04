@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 export default function LoanRequestForm({ onSubmit }) {
   const [formData, setFormData] = useState({
     amount: '',
-    interestRate: '',
+    interestRate: '5.2',
     duration: '30',
     collateral: 'ETH',
     purpose: '',
@@ -17,8 +17,7 @@ export default function LoanRequestForm({ onSubmit }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({
     totalRepayment: 0,
-    monthlyPayment: 0,
-    requiredCollateral: 0
+    monthlyPayment: 0
   });
 
   // Calculate loan metrics in real-time
@@ -29,12 +28,10 @@ export default function LoanRequestForm({ onSubmit }) {
     
     const totalRepayment = amount * (1 + rate / 100);
     const monthlyPayment = totalRepayment / (days / 30);
-    const requiredCollateral = amount * 1.5; // 150% collateralization ratio
     
     setCalculatedValues({
       totalRepayment: totalRepayment.toFixed(4),
-      monthlyPayment: monthlyPayment.toFixed(4),
-      requiredCollateral: requiredCollateral.toFixed(4)
+      monthlyPayment: monthlyPayment.toFixed(4)
     });
   }, [formData.amount, formData.interestRate, formData.duration]);
 
@@ -128,23 +125,28 @@ export default function LoanRequestForm({ onSubmit }) {
               Loan Amount (ETH) *
             </Label>
             <div className="relative">
-              <Input
-                id="amount"
-                type="number"
-                placeholder="0.0"
-                step="0.01"
-                min="0.01"
-                max="100"
-                value={formData.amount}
-                onChange={(e) => handleChange('amount', e.target.value)}
-                className="pl-12 glass-card border-border focus:border-primary transition-all duration-300 h-12"
-                required
-              />
+                             <Input
+                 id="amount"
+                 type="number"
+                 placeholder="0.0"
+                 step="0.01"
+                 min="0.01"
+                 max="100"
+                 value={formData.amount}
+                 onChange={(e) => handleChange('amount', e.target.value)}
+                 className="pl-12 glass-card border-border focus:border-primary transition-all duration-300 h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                 required
+               />
               <i className="fab fa-ethereum absolute left-4 top-1/2 transform -translate-y-1/2 text-primary"></i>
             </div>
             {formData.amount && (
               <p className="text-xs text-muted-foreground">
                 ≈ ${(parseFloat(formData.amount) * 2400).toLocaleString()} USD
+              </p>
+            )}
+            {formData.amount && parseFloat(formData.amount) < 0.01 && (
+              <p className="text-xs text-red-400">
+                Minimum loan amount is 0.01 ETH
               </p>
             )}
           </div>
@@ -155,18 +157,18 @@ export default function LoanRequestForm({ onSubmit }) {
               Interest Rate (%) *
             </Label>
             <div className="relative">
-              <Input
-                id="interestRate"
-                type="number"
-                placeholder={getMarketRate()}
-                step="0.1"
-                min="0.1"
-                max="50"
-                value={formData.interestRate}
-                onChange={(e) => handleChange('interestRate', e.target.value)}
-                className="glass-card border-border focus:border-primary transition-all duration-300 h-12"
-                required
-              />
+                             <Input
+                 id="interestRate"
+                 type="number"
+                 placeholder={getMarketRate()}
+                 step="0.1"
+                 min="0.1"
+                 max="50"
+                 value={formData.interestRate}
+                 onChange={(e) => handleChange('interestRate', e.target.value)}
+                 className="glass-card border-border focus:border-primary transition-all duration-300 h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                 required
+               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 <span className="text-xs text-muted-foreground">Market: {getMarketRate()}%</span>
               </div>
@@ -178,6 +180,11 @@ export default function LoanRequestForm({ onSubmit }) {
                   {getRiskLevel().level} Risk
                 </span>
               </div>
+            )}
+            {formData.interestRate && (parseFloat(formData.interestRate) < 0.1 || parseFloat(formData.interestRate) > 50) && (
+              <p className="text-xs text-red-400">
+                Interest rate must be between 0.1% and 50%
+              </p>
             )}
           </div>
         </div>
@@ -211,22 +218,18 @@ export default function LoanRequestForm({ onSubmit }) {
               <i className="fas fa-calculator text-primary mr-3"></i>
               Loan Summary
             </h4>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Total Repayment</p>
-                <p className="text-2xl font-bold text-primary">{calculatedValues.totalRepayment} ETH</p>
-              </div>
-              <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Required Collateral</p>
-                <p className="text-2xl font-bold text-secondary">{calculatedValues.requiredCollateral} {formData.collateral}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Interest Amount</p>
-                <p className="text-2xl font-bold text-green-400">
-                  {(calculatedValues.totalRepayment - parseFloat(formData.amount || 0)).toFixed(4)} ETH
-                </p>
-              </div>
-            </div>
+                         <div className="grid md:grid-cols-2 gap-6">
+               <div className="text-center">
+                 <p className="text-muted-foreground text-sm mb-1">Total Repayment</p>
+                 <p className="text-2xl font-bold text-primary">{calculatedValues.totalRepayment} ETH</p>
+               </div>
+               <div className="text-center">
+                 <p className="text-muted-foreground text-sm mb-1">Interest Amount</p>
+                 <p className="text-2xl font-bold text-green-400">
+                   {(calculatedValues.totalRepayment - parseFloat(formData.amount || 0)).toFixed(4)} ETH
+                 </p>
+               </div>
+             </div>
           </div>
         )}
         
@@ -253,7 +256,7 @@ export default function LoanRequestForm({ onSubmit }) {
         <div className="flex flex-col space-y-4">
           <Button
             type="submit"
-            disabled={isSubmitting || !formData.amount || !formData.interestRate}
+            disabled={isSubmitting || !formData.amount || parseFloat(formData.amount) < 0.01 || !formData.interestRate || parseFloat(formData.interestRate) < 0.1 || parseFloat(formData.interestRate) > 50}
             className="w-full button-advanced bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 h-14 text-lg font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (

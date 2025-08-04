@@ -12,9 +12,9 @@ export default function LenderDashboard() {
   const [loanRequests, setLoanRequests] = useState([]);
   const [fundedLoans, setFundedLoans] = useState([]);
   const [stats, setStats] = useState({
-    totalLent: '0.00',
-    activeLoans: 0,
-    totalEarned: '0.00',
+    totalLent: '56.36',
+    activeLoans: 3,
+    totalEarned: '84.96',
     avgReturn: '6.8'
   });
   const [filterStatus, setFilterStatus] = useState('all');
@@ -29,7 +29,6 @@ export default function LenderDashboard() {
     highYieldOnly: false,
     verifiedOnly: false,
     trendingOnly: false,
-    collateralType: 'all',
     loanPurpose: 'all'
   });
 
@@ -137,11 +136,6 @@ export default function LenderDashboard() {
         }
       }
       
-      // Check collateral type
-      if (filterSettings.collateralType !== 'all' && loan.collateral.toLowerCase() !== filterSettings.collateralType) {
-        return false;
-      }
-      
       // Check loan purpose
       if (filterSettings.loanPurpose !== 'all' && !loan.purpose.toLowerCase().includes(filterSettings.loanPurpose)) {
         return false;
@@ -162,7 +156,6 @@ export default function LenderDashboard() {
     if (filterSettings.highYieldOnly) filterCount++;
     if (filterSettings.verifiedOnly) filterCount++;
     if (filterSettings.trendingOnly) filterCount++;
-    if (filterSettings.collateralType !== 'all') filterCount++;
     if (filterSettings.loanPurpose !== 'all') filterCount++;
     
     setHasActiveFilters(filterCount > 0);
@@ -181,7 +174,6 @@ export default function LenderDashboard() {
       highYieldOnly: false,
       verifiedOnly: false,
       trendingOnly: false,
-      collateralType: 'all',
       loanPurpose: 'all'
     });
     setHasActiveFilters(false);
@@ -196,7 +188,6 @@ export default function LenderDashboard() {
         amount: '2.5',
         interestRate: '5.5',
         duration: '60',
-        collateral: 'ETH',
         purpose: 'DeFi farming capital',
         borrower: '0x1234...5678',
         timeAgo: '2 hours ago',
@@ -207,7 +198,6 @@ export default function LenderDashboard() {
         amount: '1.8',
         interestRate: '6.2',
         duration: '30',
-        collateral: 'USDC',
         purpose: 'NFT purchase',
         borrower: '0x5678...9012',
         timeAgo: '5 hours ago',
@@ -218,7 +208,6 @@ export default function LenderDashboard() {
         amount: '3.2',
         interestRate: '4.8',
         duration: '90',
-        collateral: 'ETH',
         purpose: 'Business expansion',
         borrower: '0x9012...3456',
         timeAgo: '1 day ago',
@@ -429,14 +418,10 @@ export default function LenderDashboard() {
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div>
                           <span className="text-muted-foreground block">Duration</span>
                           <span className="text-white font-medium">{request.duration} days</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground block">Collateral</span>
-                          <span className="text-white font-medium">{request.collateral}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground block">Expected Return</span>
