@@ -124,7 +124,7 @@ After deployment, the contract address will be displayed in the console. Update 
 ## Network Configuration
 
 The contract is configured for:
-- **Local Development**: Hardhat localhost (chainId: 1337)
+- **Local Development**: Hardhat localhost (chainId: 31337)
 - **Test Networks**: Can be configured for testnets like Sepolia, Goerli
 - **Mainnet**: Can be deployed to Ethereum mainnet
 

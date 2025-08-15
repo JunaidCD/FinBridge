@@ -5,8 +5,8 @@ async function main() {
 
   // Check if we're on localhost network
   const network = await hre.ethers.provider.getNetwork();
-  if (network.chainId !== 1337n) {
-    console.log("⚠️  Warning: Not on localhost network (chainId: 1337)");
+  if (network.chainId !== 31337n) {
+    console.log("⚠️  Warning: Not on localhost network (chainId: 31337)");
     console.log("Current chainId:", network.chainId.toString());
     console.log("Please make sure you're connected to the local Hardhat node.\n");
   }

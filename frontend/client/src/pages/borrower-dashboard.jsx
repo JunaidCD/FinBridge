@@ -3,9 +3,13 @@ import { Button } from '@/components/ui/button';
 import LoanRequestForm from '../components/loan-request-form';
 import LoanCard from '../components/loan-card';
 import StatsCard from '../components/stats-card';
+import { useLoan } from '../context/loan-context';
+import { useWeb3 } from '../context/web3-context';
 
 export default function BorrowerDashboard() {
-  const [loans, setLoans] = useState([]);
+  const { userLoans, createLoanRequest, isLoading } = useLoan();
+  const { account } = useWeb3();
+  
   const [statusFilter, setStatusFilter] = useState('all');
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -13,70 +17,41 @@ export default function BorrowerDashboard() {
   const exportDropdownRef = useRef(null);
   const statusDropdownRef = useRef(null);
   const [stats, setStats] = useState({
-    totalBorrowed: '34.7',
-    activeLoans: 2,
-    totalRepaid: '36.84',
-    creditScore: 850
+    totalBorrowed: '0',
+    activeLoans: 0,
+    totalRepaid: '0',
+    creditScore: 750
   });
 
-  const handleLoanRequest = (loanData) => {
-    // TODO: Integrate with smart contract to create loan request
+  const handleLoanRequest = async (loanData) => {
+    // The loan request is now handled by the smart contract through the form
     console.log('Loan request submitted:', loanData);
     
-    // For now, add to local state (will be replaced with blockchain integration)
-    const newLoan = {
-      id: Date.now(),
-      ...loanData,
-      status: 'pending',
-      date: new Date().toLocaleDateString(),
-      lender: null,
-      dueDate: null,
-      borrower: '0x1234...5678' // Placeholder borrower address
-    };
-    
-    setLoans(prev => [newLoan, ...prev]);
-    
-    // Update stats
-    setStats(prev => ({
-      ...prev,
-      totalBorrowed: (parseFloat(prev.totalBorrowed) + parseFloat(loanData.amount)).toFixed(2),
-      activeLoans: prev.activeLoans + 1
-    }));
+    // Stats will be updated automatically through the loan context
   };
 
-  // Initialize with mock data
+  // Update stats based on real user loan data
   useEffect(() => {
-    setLoans([
-      {
-        id: 1,
-        amount: 5000,
-        purpose: "Business Expansion",
-        interestRate: 8.5,
-        duration: 90,
-        status: "active",
-        monthlyPayment: 435.85,
-        nextPayment: "2024-02-15",
-        totalPaid: 1743.40,
-        remainingBalance: 3256.60,
-        lender: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b7",
-        dueDate: "September 30, 2025"
-      },
-      {
-        id: 2,
-        amount: 2500,
-        purpose: "Equipment Purchase",
-        interestRate: 7.2,
-        duration: 150,
-        status: "pending",
-        monthlyPayment: 428.33,
-        nextPayment: "N/A",
-        totalPaid: 0,
-        remainingBalance: 2500,
-        lender: "0x8ba1f109551bD432803012645Hac136c772c3c7d",
-        dueDate: "November 30, 2025"
-      }
-    ]);
-  }, []);
+    if (userLoans.length > 0) {
+      const totalBorrowed = userLoans.reduce((sum, loan) => sum + parseFloat(loan.amount), 0);
+      const activeLoans = userLoans.filter(loan => loan.isActive && loan.isFunded).length;
+      const totalRepaid = userLoans.filter(loan => !loan.isActive && loan.isFunded).reduce((sum, loan) => sum + parseFloat(loan.amount), 0);
+      
+      setStats({
+        totalBorrowed: totalBorrowed.toFixed(2),
+        activeLoans,
+        totalRepaid: totalRepaid.toFixed(2),
+        creditScore: Math.floor(Math.random() * 200) + 600 // Mock credit score for now
+      });
+    } else {
+      setStats({
+        totalBorrowed: '0',
+        activeLoans: 0,
+        totalRepaid: '0',
+        creditScore: 750
+      });
+    }
+  }, [userLoans]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -102,7 +77,12 @@ export default function BorrowerDashboard() {
       // Simulate export process
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const filteredLoans = statusFilter === 'all' ? loans : loans.filter(loan => loan.status === statusFilter);
+      const filteredLoans = statusFilter === 'all' ? userLoans : userLoans.filter(loan => {
+        if (statusFilter === 'pending') return !loan.isFunded;
+        if (statusFilter === 'active') return loan.isActive && loan.isFunded;
+        if (statusFilter === 'completed') return !loan.isActive && loan.isFunded;
+        return true;
+      });
       
       if (format === 'csv') {
         exportToCSV(filteredLoans);
@@ -119,19 +99,19 @@ export default function BorrowerDashboard() {
   };
 
   const exportToCSV = (data) => {
-    const headers = ['ID', 'Amount', 'Purpose', 'Interest Rate', 'Term', 'Status', 'Monthly Payment', 'Total Paid', 'Remaining Balance'];
+    const headers = ['ID', 'Amount', 'Purpose', 'Interest Rate', 'Duration', 'Status', 'Borrower', 'Lender', 'Created'];
     const csvContent = [
       headers.join(','),
       ...data.map(loan => [
         loan.id,
         loan.amount,
-        `"${loan.purpose}"`,
+        `"${loan.purpose || 'General purpose'}"`,
         loan.interestRate,
-        loan.term,
-        loan.status,
-        loan.monthlyPayment,
-        loan.totalPaid,
-        loan.remainingBalance
+        loan.duration,
+        loan.isFunded ? (loan.isActive ? 'Active' : 'Completed') : 'Pending',
+        loan.borrower,
+        loan.lender || 'N/A',
+        new Date(loan.timestamp).toLocaleDateString()
       ].join(','))
     ].join('\n');
     
@@ -163,14 +143,19 @@ export default function BorrowerDashboard() {
   };
 
   // Filter loans based on status
-  const filteredLoans = statusFilter === 'all' ? loans : loans.filter(loan => loan.status === statusFilter);
+  const filteredLoans = statusFilter === 'all' ? userLoans : userLoans.filter(loan => {
+    if (statusFilter === 'pending') return !loan.isFunded;
+    if (statusFilter === 'active') return loan.isActive && loan.isFunded;
+    if (statusFilter === 'completed') return !loan.isActive && loan.isFunded;
+    return true;
+  });
 
   // Get status counts
   const statusCounts = {
-    all: loans.length,
-    pending: loans.filter(loan => loan.status === 'pending').length,
-    active: loans.filter(loan => loan.status === 'active').length,
-    completed: loans.filter(loan => loan.status === 'completed').length
+    all: userLoans.length,
+    pending: userLoans.filter(loan => !loan.isFunded).length,
+    active: userLoans.filter(loan => loan.isActive && loan.isFunded).length,
+    completed: userLoans.filter(loan => !loan.isActive && loan.isFunded).length
   };
 
   return (
@@ -449,7 +434,12 @@ export default function BorrowerDashboard() {
           </div>
         </div>
         
-        {filteredLoans.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading your loan portfolio...</p>
+          </div>
+        ) : filteredLoans.length === 0 ? (
           /* Enhanced Empty State */
           <div className="text-center py-16">
             <div className="relative mb-8">
@@ -477,9 +467,17 @@ export default function BorrowerDashboard() {
         ) : (
           /* Enhanced Loans List */
           <div className="space-y-6">
-            {loans.map((loan, index) => (
+            {filteredLoans.map((loan, index) => (
               <div key={loan.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                <LoanCard loan={loan} type="borrower" />
+                <LoanCard 
+                  loan={{
+                    ...loan,
+                    status: loan.isFunded ? (loan.isActive ? 'Active' : 'Completed') : 'Pending',
+                    date: new Date(loan.timestamp).toLocaleDateString(),
+                    dueDate: loan.isFunded ? new Date(new Date(loan.timestamp).getTime() + parseInt(loan.duration) * 24 * 60 * 60 * 1000).toLocaleDateString() : null
+                  }} 
+                  type="borrower" 
+                />
               </div>
             ))}
           </div>

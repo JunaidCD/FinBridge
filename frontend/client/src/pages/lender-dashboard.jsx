@@ -7,10 +7,15 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLoan } from '../context/loan-context';
+import { useWeb3 } from '../context/web3-context';
+import { useToast } from '../hooks/use-toast';
 
 export default function LenderDashboard() {
-  const [loanRequests, setLoanRequests] = useState([]);
-  const [fundedLoans, setFundedLoans] = useState([]);
+  const { loanRequests, fundedLoans, fundLoan, isLoading, fetchActiveLoanRequests } = useLoan();
+  const { account } = useWeb3();
+  const { toast } = useToast();
+  
   const [stats, setStats] = useState({
     totalLent: '56.36',
     activeLoans: 3,
@@ -32,32 +37,29 @@ export default function LenderDashboard() {
     loanPurpose: 'all'
   });
 
-  const handleFundLoan = (requestId) => {
-    // TODO: Integrate with smart contract to fund loan
-    console.log('Funding loan:', requestId);
-    
-    // For now, move from requests to funded (will be replaced with blockchain integration)
-    const request = loanRequests.find(r => r.id === requestId);
-    if (request) {
-      const fundedLoan = {
-        ...request,
-        status: 'Active',
-        fundedDate: new Date().toLocaleDateString(),
-        expectedReturn: (parseFloat(request.amount) * (1 + parseFloat(request.interestRate) / 100)).toFixed(3),
-        dueDate: new Date(Date.now() + parseInt(request.duration) * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        lender: '0x9876...4321' // Placeholder lender address
-      };
-      
-      setFundedLoans(prev => [fundedLoan, ...prev]);
-      setLoanRequests(prev => prev.filter(r => r.id !== requestId));
-      
-      // Update stats
-      setStats(prev => ({
-        totalLent: (parseFloat(prev.totalLent) + parseFloat(request.amount)).toFixed(2),
-        activeLoans: prev.activeLoans + 1,
-        totalEarned: prev.totalEarned,
-        avgReturn: prev.avgReturn
-      }));
+  const handleFundLoan = async (requestId) => {
+    if (!account) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your MetaMask wallet first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const loan = loanRequests.find(r => r.id === requestId);
+      if (loan) {
+        await fundLoan(requestId, loan.amount);
+        toast({
+          title: "Success!",
+          description: `Successfully funded ${loan.amount} ETH loan`,
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error('Error funding loan:', error);
+      // Error handling is done in the loan context
     }
   };
 
@@ -80,9 +82,10 @@ export default function LenderDashboard() {
     console.log('Current loan requests:', loanRequests);
     
     const filtered = loanRequests.filter(loan => {
-      // Check credit score range
-      if (loan.creditScore < filterSettings.creditScore[0] || 
-          loan.creditScore > filterSettings.creditScore[1]) {
+      // Check credit score range (mock data for now)
+      const creditScore = loan.creditScore || Math.floor(Math.random() * 200) + 600;
+      if (creditScore < filterSettings.creditScore[0] || 
+          creditScore > filterSettings.creditScore[1]) {
         return false;
       }
       
@@ -123,7 +126,7 @@ export default function LenderDashboard() {
       // Check verified borrowers only
       if (filterSettings.verifiedOnly) {
         // Assuming verified borrowers have higher credit scores
-        if (loan.creditScore < 700) {
+        if (creditScore < 700) {
           return false;
         }
       }
@@ -180,43 +183,34 @@ export default function LenderDashboard() {
     setActiveFilterCount(0);
   };
 
-  // Sample loan requests for demonstration
+  // Update filtered requests when loanRequests changes
   useEffect(() => {
-    const sampleRequests = [
-      {
-        id: 1,
-        amount: '2.5',
-        interestRate: '5.5',
-        duration: '60',
-        purpose: 'DeFi farming capital',
-        borrower: '0x1234...5678',
-        timeAgo: '2 hours ago',
-        creditScore: 780
-      },
-      {
-        id: 2,
-        amount: '1.8',
-        interestRate: '6.2',
-        duration: '30',
-        purpose: 'NFT purchase',
-        borrower: '0x5678...9012',
-        timeAgo: '5 hours ago',
-        creditScore: 720
-      },
-      {
-        id: 3,
-        amount: '3.2',
-        interestRate: '4.8',
-        duration: '90',
-        purpose: 'Business expansion',
-        borrower: '0x9012...3456',
-        timeAgo: '1 day ago',
-        creditScore: 850
-      }
-    ];
-    setLoanRequests(sampleRequests);
-    setFilteredLoanRequests(sampleRequests); // Initialize filtered requests with all requests
-  }, []);
+    if (hasActiveFilters) {
+      applyFilters();
+    } else {
+      setFilteredLoanRequests(loanRequests);
+    }
+  }, [loanRequests, hasActiveFilters]);
+
+  // Initialize filtered requests with all requests
+  useEffect(() => {
+    setFilteredLoanRequests(loanRequests);
+  }, [loanRequests]);
+
+  // Update stats based on real data
+  useEffect(() => {
+    if (fundedLoans.length > 0) {
+      const totalLent = fundedLoans.reduce((sum, loan) => sum + parseFloat(loan.amount), 0);
+      const avgReturn = fundedLoans.reduce((sum, loan) => sum + parseFloat(loan.interestRate), 0) / fundedLoans.length;
+      
+      setStats({
+        totalLent: totalLent.toFixed(2),
+        activeLoans: fundedLoans.filter(loan => loan.isActive && loan.isFunded).length,
+        totalEarned: (totalLent * (avgReturn / 100)).toFixed(2),
+        avgReturn: avgReturn.toFixed(1)
+      });
+    }
+  }, [fundedLoans]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -309,6 +303,22 @@ export default function LenderDashboard() {
               </h2>
               <div className="flex items-center space-x-4">
                 <Button 
+                  onClick={async () => {
+                    console.log('Refreshing loan requests...');
+                    await fetchActiveLoanRequests();
+                    toast({
+                      title: "Refreshed",
+                      description: "Loan marketplace data has been refreshed",
+                      variant: "default",
+                    });
+                  }}
+                  className="bg-background border border-border hover:border-primary rounded-lg px-4 py-2 text-sm flex items-center group transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
+                  disabled={isLoading}
+                >
+                  <i className={`fas fa-sync-alt mr-2 ${isLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-300'}`}></i>
+                  Refresh
+                </Button>
+                <Button 
                   onClick={() => {
                     console.log('Opening filter dialog...');
                     setIsFilterDialogOpen(true);
@@ -361,7 +371,12 @@ export default function LenderDashboard() {
               </div>
             </div>
             
-            {filteredLoanRequests.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading loan requests...</p>
+              </div>
+            ) : filteredLoanRequests.length === 0 ? (
               /* Enhanced Empty State */
               <div className="text-center py-16">
                 <div className="relative mb-8">
@@ -372,8 +387,20 @@ export default function LenderDashboard() {
                 </div>
                 <h3 className="text-2xl font-bold mb-4 text-white">No Loan Requests Available</h3>
                 <p className="text-muted-foreground mb-8 text-lg max-w-md mx-auto">
-                  The marketplace is currently empty. New loan requests from borrowers will appear here.
+                  {hasActiveFilters 
+                    ? "No loan requests match your current filters. Try adjusting your filter settings."
+                    : "The marketplace is currently empty. New loan requests from borrowers will appear here."
+                  }
                 </p>
+                {hasActiveFilters && (
+                  <Button 
+                    onClick={resetFilters}
+                    className="button-advanced bg-gradient-to-r from-secondary to-primary px-6 py-3 mr-4"
+                  >
+                    <i className="fas fa-times mr-2"></i>
+                    Clear Filters
+                  </Button>
+                )}
                 <Button className="button-advanced bg-gradient-to-r from-secondary to-primary px-6 py-3">
                   <i className="fas fa-bell mr-2"></i>
                   Set Alert for New Requests
@@ -411,6 +438,7 @@ export default function LenderDashboard() {
                         </div>
                         <Button
                           onClick={() => handleFundLoan(request.id)}
+                          disabled={!account}
                           className="button-advanced bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/30 px-6 py-3"
                         >
                           <i className="fas fa-coins mr-2"></i>
@@ -426,7 +454,7 @@ export default function LenderDashboard() {
                         <div>
                           <span className="text-muted-foreground block">Expected Return</span>
                           <span className="text-green-400 font-medium">
-                            {(parseFloat(request.amount) * (1 + parseFloat(request.interestRate) / 100)).toFixed(3)} ETH
+                            {request.expectedReturn}
                           </span>
                         </div>
                         <div>
@@ -527,7 +555,12 @@ export default function LenderDashboard() {
           </div>
         </div>
         
-        {fundedLoans.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading funded loans...</p>
+          </div>
+        ) : fundedLoans.length === 0 ? (
           /* Enhanced Empty State */
           <div className="text-center py-16">
             <div className="relative mb-8">
