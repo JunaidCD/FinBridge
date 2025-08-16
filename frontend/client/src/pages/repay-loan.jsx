@@ -17,7 +17,7 @@ export default function RepayLoan() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [repaymentAmount, setRepaymentAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const { account } = useWeb3();
+  const { account, walletBalance } = useWeb3();
 
   // Mock data for outstanding loans
   useEffect(() => {
@@ -161,11 +161,11 @@ export default function RepayLoan() {
           <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground text-sm mb-1">Total Remaining Balance</p>
-                <p className="text-2xl font-bold text-secondary">{summaryStats.totalRemainingBalance} ETH</p>
+                <p className="text-muted-foreground text-sm mb-1">Wallet Balance</p>
+                <p className="text-2xl font-bold text-secondary">{account ? walletBalance : '0.0000'} ETH</p>
               </div>
               <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
-                <i className="fas fa-balance-scale text-secondary text-xl"></i>
+                <i className="fas fa-wallet text-secondary text-xl"></i>
               </div>
             </div>
           </div>
