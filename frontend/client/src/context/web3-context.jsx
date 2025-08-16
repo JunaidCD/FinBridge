@@ -1,7 +1,20 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '../hooks/use-toast';
+import { checkContractDeployment } from '../contracts/index.js';
 
 const Web3Context = createContext();
+
+// Hardhat local network configuration
+const HARDHAT_NETWORK = {
+  chainId: '0x7A69', // 31337 in hex
+  chainName: 'Hardhat Local',
+  rpcUrls: ['http://127.0.0.1:8545'],
+  nativeCurrency: {
+    name: 'ETH',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+};
 
 export function useWeb3() {
   const context = useContext(Web3Context);
@@ -16,7 +29,46 @@ export function Web3Provider({ children }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [provider, setProvider] = useState(null);
   const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
+  const [isContractDeployed, setIsContractDeployed] = useState(false);
   const { toast } = useToast();
+
+  const switchToHardhatNetwork = async () => {
+    try {
+      // Try to switch to Hardhat network
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: HARDHAT_NETWORK.chainId }],
+      });
+      return true;
+    } catch (switchError) {
+      // If network doesn't exist, add it
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [HARDHAT_NETWORK],
+          });
+          return true;
+        } catch (addError) {
+          console.error('Error adding Hardhat network:', addError);
+          toast({
+            title: "Network Setup Failed",
+            description: "Failed to add Hardhat local network. Please add it manually.",
+            variant: "destructive",
+          });
+          return false;
+        }
+      } else {
+        console.error('Error switching to Hardhat network:', switchError);
+        toast({
+          title: "Network Switch Failed",
+          description: "Please manually switch to Hardhat Local network in MetaMask.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+  };
 
   const connectWallet = async () => {
     console.log('Connect wallet called');
@@ -65,6 +117,24 @@ export function Web3Provider({ children }) {
       console.log('Received accounts:', accounts);
       
       if (accounts.length > 0) {
+        // Check if we're on the correct network
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        console.log('Current chain ID:', chainId);
+        
+        if (chainId !== HARDHAT_NETWORK.chainId) {
+          console.log('Wrong network detected, switching to Hardhat...');
+          toast({
+            title: "Switching Network",
+            description: "Switching to Hardhat local network...",
+          });
+          
+          const networkSwitched = await switchToHardhatNetwork();
+          if (!networkSwitched) {
+            setIsConnecting(false);
+            return;
+          }
+        }
+        
         setAccount(accounts[0]);
         console.log('Successfully connected to account:', accounts[0]);
         
@@ -136,14 +206,46 @@ export function Web3Provider({ children }) {
           });
           console.log('Found accounts on load:', accounts);
           if (accounts.length > 0) {
-            setAccount(accounts[0]);
-            setProvider(window.ethereum);
-            console.log('Already connected to account:', accounts[0]);
-            toast({
-              title: "Wallet Already Connected",
-              description: `Connected to ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
-              variant: "default",
-            });
+            // Check if we're on the correct network
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            console.log('Current chain ID on load:', chainId);
+            
+            if (chainId !== HARDHAT_NETWORK.chainId) {
+              console.log('Wrong network detected on load');
+              toast({
+                title: "Wrong Network",
+                description: "Please switch to Hardhat Local network to use the DApp.",
+                variant: "destructive",
+              });
+            } else {
+              setAccount(accounts[0]);
+              setProvider(window.ethereum);
+              console.log('Already connected to account:', accounts[0]);
+              
+              // Check contract deployment
+              const contractDeployed = await checkContractDeployment(window.ethereum);
+              setIsContractDeployed(contractDeployed);
+              
+              toast({
+                title: "Wallet Already Connected",
+                description: `Connected to ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
+                variant: "default",
+              });
+              
+              if (contractDeployed) {
+                toast({
+                  title: "Contract Ready!",
+                  description: "Smart contract is deployed and accessible.",
+                  variant: "default",
+                });
+              } else {
+                toast({
+                  title: "Contract Issue",
+                  description: "Contract not found. Please check your network connection.",
+                  variant: "destructive",
+                });
+              }
+            }
           }
         } catch (error) {
           console.error('Error checking wallet connection:', error);
@@ -216,8 +318,10 @@ export function Web3Provider({ children }) {
     provider,
     isConnecting,
     isMetaMaskInstalled,
+    isContractDeployed,
     connectWallet,
     disconnectWallet,
+    switchToHardhatNetwork,
   };
 
   return (
