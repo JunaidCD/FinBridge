@@ -67,10 +67,10 @@ export default function LoanCard({ loan, type, onFund }) {
         </div>
         <div>
           <span className="text-muted-foreground block">
-            {type === 'funded' ? 'Expected Return' : type === 'borrower' ? 'Due Date' : 'Collateral'}
+            {type === 'funded' ? 'Expected Return' : type === 'borrower' ? 'Due Amount' : 'Collateral'}
           </span>
-          <span className={type === 'funded' ? 'text-green-400' : ''}>
-            {loan.expectedReturn || loan.dueDate || `${parseFloat(loan.amount || 0) * 1.5} ETH`}
+          <span className={type === 'funded' ? 'text-green-400' : type === 'borrower' ? 'text-red-400' : ''}>
+            {loan.expectedReturn || (type === 'borrower' ? `${(parseFloat(loan.amount || 0) * (1 + parseFloat(loan.interestRate || 0) / 100)).toFixed(2)} ETH` : loan.dueDate) || `${parseFloat(loan.amount || 0) * 1.5} ETH`}
           </span>
         </div>
         {type === 'funded' && (

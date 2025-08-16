@@ -30,7 +30,26 @@ export function Web3Provider({ children }) {
   const [provider, setProvider] = useState(null);
   const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
   const [isContractDeployed, setIsContractDeployed] = useState(false);
+  const [walletBalance, setWalletBalance] = useState('0');
   const { toast } = useToast();
+
+  const getWalletBalance = async (address) => {
+    try {
+      if (!window.ethereum || !address) return '0';
+      
+      const balance = await window.ethereum.request({
+        method: 'eth_getBalance',
+        params: [address, 'latest'],
+      });
+      
+      // Convert from wei to ETH
+      const balanceInEth = parseInt(balance, 16) / Math.pow(10, 18);
+      return balanceInEth.toFixed(4);
+    } catch (error) {
+      console.error('Error fetching wallet balance:', error);
+      return '0';
+    }
+  };
 
   const switchToHardhatNetwork = async () => {
     try {
@@ -143,6 +162,10 @@ export function Web3Provider({ children }) {
           setProvider(window.ethereum);
         }
 
+        // Fetch wallet balance
+        const balance = await getWalletBalance(accounts[0]);
+        setWalletBalance(balance);
+
         toast({
           title: "Wallet Connected!",
           description: `Successfully connected to ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
@@ -183,6 +206,7 @@ export function Web3Provider({ children }) {
   const disconnectWallet = () => {
     setAccount(null);
     setProvider(null);
+    setWalletBalance('0');
     console.log('Wallet disconnected');
     toast({
       title: "Wallet Disconnected",
@@ -221,6 +245,10 @@ export function Web3Provider({ children }) {
               setAccount(accounts[0]);
               setProvider(window.ethereum);
               console.log('Already connected to account:', accounts[0]);
+              
+              // Fetch wallet balance
+              const balance = await getWalletBalance(accounts[0]);
+              setWalletBalance(balance);
               
               // Check contract deployment
               const contractDeployed = await checkContractDeployment(window.ethereum);
@@ -261,11 +289,16 @@ export function Web3Provider({ children }) {
 
     // Listen for account changes
     if (typeof window.ethereum !== 'undefined') {
-      window.ethereum.on('accountsChanged', (accounts) => {
+      window.ethereum.on('accountsChanged', async (accounts) => {
         console.log('Account changed:', accounts);
         if (accounts.length > 0) {
           setAccount(accounts[0]);
           console.log('Account changed to:', accounts[0]);
+          
+          // Fetch balance for new account
+          const balance = await getWalletBalance(accounts[0]);
+          setWalletBalance(balance);
+          
           toast({
             title: "Account Changed",
             description: `Switched to ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
@@ -319,9 +352,11 @@ export function Web3Provider({ children }) {
     isConnecting,
     isMetaMaskInstalled,
     isContractDeployed,
+    walletBalance,
     connectWallet,
     disconnectWallet,
     switchToHardhatNetwork,
+    getWalletBalance,
   };
 
   return (
