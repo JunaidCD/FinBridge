@@ -10,61 +10,34 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useWeb3 } from '../context/web3-context';
+import { useLoan } from '../context/loan-context';
 
 export default function RepayLoan() {
-  const [loans, setLoans] = useState([]);
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [repaymentAmount, setRepaymentAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { account, walletBalance } = useWeb3();
+  const { userLoans, repayLoan, isLoading } = useLoan();
 
-  // Mock data for outstanding loans
-  useEffect(() => {
-    setLoans([
-             {
-         id: 1,
-         lenderWallet: '0x1234...5678',
-         borrowedAmount: 2.5,
-         interestRate: 8.5,
-         dueDate: '2025-10-31',
-         remainingBalance: 1.8,
-         status: 'active',
-         loanDate: '2025-01-15',
-         monthlyPayment: 0.3
-       },
-       {
-         id: 2,
-         lenderWallet: '0x9876...4321',
-         borrowedAmount: 1.2,
-         interestRate: 6.2,
-         dueDate: '2025-12-31',
-         remainingBalance: 0.9,
-         status: 'active',
-         loanDate: '2025-02-01',
-         monthlyPayment: 0.15
-       },
-       {
-         id: 3,
-         lenderWallet: '0x5555...6666',
-         borrowedAmount: 3.0,
-         interestRate: 7.8,
-         dueDate: '2025-07-31',
-         remainingBalance: 2.1,
-         status: 'overdue',
-         loanDate: '2025-01-01',
-         monthlyPayment: 0.4
-       }
-    ]);
-  }, []);
+  // Filter user loans to show only funded and active loans (loans that need repayment)
+  const outstandingLoans = userLoans.filter(loan => loan.isFunded && loan.isActive);
+
+  // Calculate due amount for each loan (principal + interest)
+  const calculateDueAmount = (loan) => {
+    const principal = parseFloat(loan.amount || 0);
+    const interestRate = parseFloat(loan.interestRate || 0);
+    return (principal * (1 + interestRate / 100)).toFixed(4);
+  };
 
   // Calculate summary stats
   const summaryStats = {
-    totalLoans: loans.length,
-    totalRemainingBalance: loans.reduce((sum, loan) => sum + loan.remainingBalance, 0).toFixed(2),
-    nextDueDate: loans.length > 0 ? loans.reduce((earliest, loan) => {
-      if (!earliest || new Date(loan.dueDate) < new Date(earliest)) {
-        return loan.dueDate;
+    totalLoans: outstandingLoans.length,
+    totalRemainingBalance: outstandingLoans.reduce((sum, loan) => sum + parseFloat(calculateDueAmount(loan)), 0).toFixed(2),
+    nextDueDate: outstandingLoans.length > 0 ? outstandingLoans.reduce((earliest, loan) => {
+      const dueDate = new Date(new Date(loan.timestamp).getTime() + parseInt(loan.duration) * 24 * 60 * 60 * 1000);
+      if (!earliest || dueDate < new Date(earliest)) {
+        return dueDate.toLocaleDateString();
       }
       return earliest;
     }, null) : 'N/A'
@@ -72,7 +45,7 @@ export default function RepayLoan() {
 
   const handleRepayClick = (loan) => {
     setSelectedLoan(loan);
-    setRepaymentAmount(loan.remainingBalance.toString());
+    setRepaymentAmount(calculateDueAmount(loan));
     setIsModalOpen(true);
   };
 
@@ -82,29 +55,12 @@ export default function RepayLoan() {
     setIsProcessing(true);
     
     try {
-      // Simulate smart contract interaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use the actual repayLoan function from loan context
+      await repayLoan(selectedLoan.id, repaymentAmount);
       
-      // Update loan data
-      const updatedLoans = loans.map(loan => {
-        if (loan.id === selectedLoan.id) {
-          const newBalance = Math.max(0, loan.remainingBalance - parseFloat(repaymentAmount));
-          return {
-            ...loan,
-            remainingBalance: newBalance,
-            status: newBalance === 0 ? 'completed' : loan.status
-          };
-        }
-        return loan;
-      });
-      
-      setLoans(updatedLoans);
       setIsModalOpen(false);
       setSelectedLoan(null);
       setRepaymentAmount('');
-      
-      // Show success message (you can integrate with toast system)
-      console.log('Repayment successful!');
     } catch (error) {
       console.error('Repayment failed:', error);
     } finally {
@@ -145,7 +101,7 @@ export default function RepayLoan() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -166,6 +122,18 @@ export default function RepayLoan() {
               </div>
               <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
                 <i className="fas fa-wallet text-secondary text-xl"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm mb-1">Total Remaining Balance</p>
+                <p className="text-2xl font-bold text-red-400">{summaryStats.totalRemainingBalance} ETH</p>
+              </div>
+              <div className="w-12 h-12 bg-red-400/20 rounded-xl flex items-center justify-center">
+                <i className="fas fa-balance-scale text-red-400 text-xl"></i>
               </div>
             </div>
           </div>
@@ -194,13 +162,13 @@ export default function RepayLoan() {
           <div className="flex items-center space-x-4">
             <div className="glass-card px-4 py-2 rounded-xl">
               <span className="text-sm text-muted-foreground">
-                {loans.filter(loan => loan.status === 'active' || loan.status === 'overdue').length} Active Loans
+                {outstandingLoans.length} Active Loans
               </span>
             </div>
           </div>
         </div>
 
-        {loans.length === 0 ? (
+        {outstandingLoans.length === 0 ? (
           <div className="text-center py-16">
             <div className="relative mb-8">
               <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-slow">
@@ -223,32 +191,31 @@ export default function RepayLoan() {
                   <TableHead>Borrowed Amount (ETH)</TableHead>
                   <TableHead>Interest Rate</TableHead>
                   <TableHead>Due Date</TableHead>
-                  <TableHead>Remaining Balance</TableHead>
+                  <TableHead>Due Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Repay Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loans.map((loan) => (
+                {outstandingLoans.map((loan) => (
                   <TableRow key={loan.id} className="hover:bg-white/5 transition-colors">
                     <TableCell className="font-medium">#{loan.id}</TableCell>
-                    <TableCell className="font-mono text-sm">{loan.lenderWallet}</TableCell>
-                    <TableCell>{loan.borrowedAmount} ETH</TableCell>
+                    <TableCell className="font-mono text-sm">{loan.lender ? `${loan.lender.slice(0, 6)}...${loan.lender.slice(-4)}` : 'N/A'}</TableCell>
+                    <TableCell>{loan.amount} ETH</TableCell>
                     <TableCell>{loan.interestRate}%</TableCell>
-                    <TableCell>{loan.dueDate}</TableCell>
-                    <TableCell className="font-semibold">{loan.remainingBalance} ETH</TableCell>
+                    <TableCell>{new Date(new Date(loan.timestamp).getTime() + parseInt(loan.duration) * 24 * 60 * 60 * 1000).toLocaleDateString()}</TableCell>
+                    <TableCell className="font-semibold text-red-400">{calculateDueAmount(loan)} ETH</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <i className={`${getStatusIcon(loan.status)} ${getStatusColor(loan.status)}`}></i>
-                        <span className={`capitalize ${getStatusColor(loan.status)}`}>
-                          {loan.status}
+                        <i className="fas fa-clock text-green-400"></i>
+                        <span className="capitalize text-green-400">
+                          Active
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Button
                         onClick={() => handleRepayClick(loan)}
-                        disabled={loan.status === 'completed'}
                         className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 px-4 py-2 rounded-xl text-sm font-medium"
                       >
                         <i className="fas fa-credit-card mr-2"></i>
@@ -282,7 +249,7 @@ export default function RepayLoan() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Lender</p>
-                  <p className="font-mono">{selectedLoan?.lenderWallet}</p>
+                  <p className="font-mono">{selectedLoan?.lender ? `${selectedLoan.lender.slice(0, 6)}...${selectedLoan.lender.slice(-4)}` : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Interest Rate</p>
@@ -290,11 +257,11 @@ export default function RepayLoan() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Due Date</p>
-                  <p className="font-semibold">{selectedLoan?.dueDate}</p>
+                  <p className="font-semibold">{selectedLoan ? new Date(new Date(selectedLoan.timestamp).getTime() + parseInt(selectedLoan.duration) * 24 * 60 * 60 * 1000).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Remaining Balance</p>
-                  <p className="font-semibold text-primary">{selectedLoan?.remainingBalance} ETH</p>
+                  <p className="text-muted-foreground">Due Amount</p>
+                  <p className="font-semibold text-red-400">{selectedLoan ? calculateDueAmount(selectedLoan) : '0'} ETH</p>
                 </div>
               </div>
             </div>
@@ -309,11 +276,11 @@ export default function RepayLoan() {
                 placeholder="Enter amount to repay"
                 className="w-full px-4 py-3 bg-background/50 border border-border/50 rounded-xl text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                 min="0"
-                max={selectedLoan?.remainingBalance}
+                max={selectedLoan ? calculateDueAmount(selectedLoan) : 0}
                 step="0.01"
               />
               <p className="text-xs text-muted-foreground">
-                Maximum: {selectedLoan?.remainingBalance} ETH
+                Maximum: {selectedLoan ? calculateDueAmount(selectedLoan) : '0'} ETH
               </p>
             </div>
 
