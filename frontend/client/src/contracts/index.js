@@ -155,16 +155,16 @@ export const contractUtils = {
       const loan = await contract.getLoanRequest(loanId);
       
       return {
-        id: loan.id.toString(),
+        id: typeof loan.id === 'bigint' ? loan.id.toString() : loan.id.toString(),
         borrower: loan.borrower,
         amount: ethers.formatEther(loan.amount),
-        interestRate: loan.interestRate.toString(),
-        duration: loan.duration.toString(),
-        timestamp: new Date(loan.timestamp * 1000).toISOString(),
+        interestRate: typeof loan.interestRate === 'bigint' ? loan.interestRate.toString() : loan.interestRate.toString(),
+        duration: typeof loan.duration === 'bigint' ? loan.duration.toString() : loan.duration.toString(),
+        timestamp: new Date(Number(loan.timestamp) * 1000).toISOString(),
         isActive: loan.isActive,
         isFunded: loan.isFunded,
         lender: loan.lender,
-        fundedAt: loan.fundedAt > 0 ? new Date(loan.fundedAt * 1000).toISOString() : null
+        fundedAt: loan.fundedAt > 0 ? new Date(Number(loan.fundedAt) * 1000).toISOString() : null
       };
     } catch (error) {
       console.error('Error getting loan request:', error);
@@ -182,8 +182,10 @@ export const contractUtils = {
       
       for (const loanId of loanIds) {
         try {
-          console.log('Fetching loan details for ID:', loanId.toString());
-          const loan = await this.getLoanRequest(contract, loanId.toString());
+          // Convert BigInt to string safely
+          const loanIdStr = typeof loanId === 'bigint' ? loanId.toString() : loanId.toString();
+          console.log('Fetching loan details for ID:', loanIdStr);
+          const loan = await this.getLoanRequest(contract, loanIdStr);
           console.log('Loan details:', loan);
           loans.push(loan);
         } catch (error) {
