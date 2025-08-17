@@ -38,6 +38,7 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     event WalletConnected(address indexed user);
     event WalletDisconnected(address indexed user);
     event LoanRequestCreated(uint256 indexed loanId, address indexed borrower, uint256 amount, uint256 interestRate, uint256 duration);
+    event LoanRequestWithdrawn(uint256 indexed loanId, address indexed borrower);
     event LoanFunded(uint256 indexed loanId, address indexed lender, address indexed borrower, uint256 amount);
     event LoanRepaid(uint256 indexed loanId, address indexed borrower, uint256 amount);
     
@@ -147,6 +148,21 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         require(success, "Transfer to borrower failed");
         
         emit LoanFunded(loanId, msg.sender, loan.borrower, loan.amount);
+    }
+    
+    function withdrawLoanRequest(uint256 loanId) 
+        external 
+        onlyBorrower(loanId) 
+        loanExists(loanId) 
+        loanActive(loanId) 
+        loanNotFunded(loanId) 
+        whenNotPaused 
+        nonReentrant 
+    {
+        LoanRequest storage loan = loanRequests[loanId];
+        loan.isActive = false;
+        
+        emit LoanRequestWithdrawn(loanId, msg.sender);
     }
     
     function repayLoan(uint256 loanId) 

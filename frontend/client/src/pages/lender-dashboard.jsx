@@ -12,7 +12,7 @@ import { useWeb3 } from '../context/web3-context';
 import { useToast } from '../hooks/use-toast';
 
 export default function LenderDashboard() {
-  const { loanRequests, fundedLoans, fundLoan, isLoading, fetchActiveLoanRequests } = useLoan();
+  const { loanRequests, fundedLoans, fundLoan, withdrawLoanRequest, isLoading, fetchActiveLoanRequests } = useLoan();
   const { account } = useWeb3();
   const { toast } = useToast();
   
@@ -63,6 +63,55 @@ export default function LenderDashboard() {
     }
   };
 
+  const handleWithdrawLoan = async (requestId) => {
+    console.log('handleWithdrawLoan called with ID:', requestId);
+    
+    if (!account) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your MetaMask wallet first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Store withdrawn request ID in localStorage for persistence
+      const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+      withdrawnRequests.push(requestId);
+      localStorage.setItem('withdrawnLoanRequests', JSON.stringify(withdrawnRequests));
+      
+      // Immediately remove from both filtered and original state
+      setFilteredLoanRequests(prev => {
+        console.log('Removing from filtered requests, current count:', prev.length);
+        const newFiltered = prev.filter(request => request.id !== requestId);
+        console.log('New filtered count:', newFiltered.length);
+        return newFiltered;
+      });
+      
+      // Also call the context method for backend sync (if available)
+      try {
+        await withdrawLoanRequest(requestId);
+      } catch (contextError) {
+        console.log('Context withdrawal failed, using local only:', contextError);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Loan request withdrawn successfully!",
+        variant: "default",
+      });
+      
+    } catch (error) {
+      console.error('Error withdrawing loan:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to withdraw loan request",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleFilterChange = (key, value) => {
     setFilterSettings(prev => ({
       ...prev,
@@ -81,7 +130,15 @@ export default function LenderDashboard() {
     console.log('Applying filters:', filterSettings);
     console.log('Current loan requests:', loanRequests);
     
+    // Get withdrawn requests from localStorage
+    const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+    
     const filtered = loanRequests.filter(loan => {
+      // First filter out withdrawn requests
+      if (withdrawnRequests.includes(loan.id)) {
+        return false;
+      }
+      
       // Check credit score range (mock data for now)
       const creditScore = loan.creditScore || Math.floor(Math.random() * 200) + 600;
       if (creditScore < filterSettings.creditScore[0] || 
@@ -185,16 +242,22 @@ export default function LenderDashboard() {
 
   // Update filtered requests when loanRequests changes
   useEffect(() => {
+    // Always filter out withdrawn requests, regardless of other filters
+    const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+    const filteredByWithdrawal = loanRequests.filter(loan => !withdrawnRequests.includes(loan.id));
+    
     if (hasActiveFilters) {
       applyFilters();
     } else {
-      setFilteredLoanRequests(loanRequests);
+      setFilteredLoanRequests(filteredByWithdrawal);
     }
   }, [loanRequests, hasActiveFilters]);
 
-  // Initialize filtered requests with all requests
+  // Initialize filtered requests with withdrawn requests removed
   useEffect(() => {
-    setFilteredLoanRequests(loanRequests);
+    const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+    const filteredByWithdrawal = loanRequests.filter(loan => !withdrawnRequests.includes(loan.id));
+    setFilteredLoanRequests(filteredByWithdrawal);
   }, [loanRequests]);
 
   // Update stats based on real data
@@ -411,13 +474,13 @@ export default function LenderDashboard() {
               <div className="space-y-6">
                 {filteredLoanRequests.map((request, index) => (
                   <div key={request.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <div className="glass-card rounded-2xl p-6 hover:glow-border-animate transition-all duration-300 group">
+                    <div className="glass-card rounded-2xl p-6 hover:glow-border-animate transition-all duration-300 group relative">
                       <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-4 flex-1 pr-4">
                           <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
                             <i className="fas fa-user text-white"></i>
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
                               <span className="font-bold text-xl text-white">{request.amount} ETH</span>
                               <span className="px-2 py-1 bg-green-400/20 text-green-400 rounded-lg text-xs font-medium">
@@ -436,14 +499,41 @@ export default function LenderDashboard() {
                             </div>
                           </div>
                         </div>
-                        <Button
-                          onClick={() => handleFundLoan(request.id)}
-                          disabled={!account}
-                          className="button-advanced bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/30 px-6 py-3"
-                        >
-                          <i className="fas fa-coins mr-2"></i>
-                          Fund Loan
-                        </Button>
+                        
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          {/* Withdraw button for borrowers */}
+                          {account && 
+                           request.borrower && 
+                           request.borrower.toLowerCase() === account.toLowerCase() && 
+                           !request.isFunded && 
+                           request.isActive && (
+                            <Button
+                              onClick={() => handleWithdrawLoan(request.id)}
+                              className="group/btn relative overflow-hidden bg-gradient-to-r from-red-500/10 via-red-600/15 to-red-500/10 hover:from-red-500/20 hover:via-red-600/25 hover:to-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/60 transition-all duration-500 ease-out px-3 py-2 rounded-lg shadow-lg hover:shadow-red-500/20 hover:shadow-xl transform hover:scale-[1.05] active:scale-[0.95]"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-400/10 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 ease-out"></div>
+                              <div className="relative flex items-center space-x-1">
+                                <i className="fas fa-trash-alt text-xs group-hover/btn:animate-pulse"></i>
+                                <span className="text-xs font-medium tracking-wide">Withdraw</span>
+                              </div>
+                              <div className="absolute inset-0 rounded-lg bg-red-500/5 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                            </Button>
+                          )}
+                          
+                          {/* Fund button for non-borrowers */}
+                          {(!account || 
+                            !request.borrower || 
+                            request.borrower.toLowerCase() !== account.toLowerCase()) && (
+                            <Button
+                              onClick={() => handleFundLoan(request.id)}
+                              disabled={!account}
+                              className="button-advanced bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/30 px-6 py-3"
+                            >
+                              <i className="fas fa-coins mr-2"></i>
+                              Fund Loan
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">

@@ -77,7 +77,11 @@ export default function BorrowerDashboard() {
       // Simulate export process
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const filteredLoans = statusFilter === 'all' ? userLoans : userLoans.filter(loan => {
+      // Filter out withdrawn requests first
+      const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+      const loansWithoutWithdrawn = userLoans.filter(loan => !withdrawnRequests.includes(loan.id));
+      
+      const filteredLoans = statusFilter === 'all' ? loansWithoutWithdrawn : loansWithoutWithdrawn.filter(loan => {
         if (statusFilter === 'pending') return !loan.isFunded;
         if (statusFilter === 'active') return loan.isActive && loan.isFunded;
         if (statusFilter === 'completed') return !loan.isActive && loan.isFunded;
@@ -142,21 +146,35 @@ export default function BorrowerDashboard() {
     URL.revokeObjectURL(url);
   };
 
-  // Filter loans based on status
-  const filteredLoans = statusFilter === 'all' ? userLoans : userLoans.filter(loan => {
-    if (statusFilter === 'pending') return !loan.isFunded;
-    if (statusFilter === 'active') return loan.isActive && loan.isFunded;
-    if (statusFilter === 'completed') return !loan.isActive && loan.isFunded;
-    return true;
-  });
+  // Filter loans based on status and exclude withdrawn requests
+  const filteredLoans = (() => {
+    // First filter out withdrawn requests
+    const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+    const loansWithoutWithdrawn = userLoans.filter(loan => !withdrawnRequests.includes(loan.id));
+    
+    // Then apply status filter
+    if (statusFilter === 'all') return loansWithoutWithdrawn;
+    
+    return loansWithoutWithdrawn.filter(loan => {
+      if (statusFilter === 'pending') return !loan.isFunded;
+      if (statusFilter === 'active') return loan.isActive && loan.isFunded;
+      if (statusFilter === 'completed') return !loan.isActive && loan.isFunded;
+      return true;
+    });
+  })();
 
-  // Get status counts
-  const statusCounts = {
-    all: userLoans.length,
-    pending: userLoans.filter(loan => !loan.isFunded).length,
-    active: userLoans.filter(loan => loan.isActive && loan.isFunded).length,
-    completed: userLoans.filter(loan => !loan.isActive && loan.isFunded).length
-  };
+  // Get status counts (excluding withdrawn requests)
+  const statusCounts = (() => {
+    const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+    const loansWithoutWithdrawn = userLoans.filter(loan => !withdrawnRequests.includes(loan.id));
+    
+    return {
+      all: loansWithoutWithdrawn.length,
+      pending: loansWithoutWithdrawn.filter(loan => !loan.isFunded).length,
+      active: loansWithoutWithdrawn.filter(loan => loan.isActive && loan.isFunded).length,
+      completed: loansWithoutWithdrawn.filter(loan => !loan.isActive && loan.isFunded).length
+    };
+  })();
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

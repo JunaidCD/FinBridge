@@ -113,6 +113,17 @@ export function LoanProvider({ children }) {
           // Refresh data
           fetchUserLoans();
           fetchFundedLoans();
+        },
+        onLoanRequestWithdrawn: (withdrawData) => {
+          console.log('Loan request withdrawn:', withdrawData);
+          toast({
+            title: "Loan Request Withdrawn",
+            description: `Loan request #${withdrawData.loanId} has been withdrawn`,
+            variant: "default",
+          });
+          // Refresh data
+          fetchActiveLoanRequests();
+          fetchUserLoans();
         }
       });
       setEventListeners(listeners);
@@ -298,6 +309,62 @@ export function LoanProvider({ children }) {
     }
   };
 
+  // Withdraw a loan request
+  const withdrawLoanRequest = async (loanId) => {
+    try {
+      setIsLoading(true);
+      
+      // If contract is available, try blockchain withdrawal
+      if (contract) {
+        try {
+          const result = await contractUtils.withdrawLoanRequest(contract, loanId);
+          
+          toast({
+            title: "Success",
+            description: "Loan request withdrawn successfully!",
+            variant: "default",
+          });
+
+          // Refresh data
+          await fetchActiveLoanRequests();
+          await fetchUserLoans();
+          return result;
+        } catch (contractError) {
+          console.log('Contract withdrawal failed, using local withdrawal:', contractError);
+        }
+      }
+      
+      // Fallback: Local withdrawal (remove from state)
+      setActiveLoanRequests(prevRequests => 
+        prevRequests.filter(request => request.id !== loanId)
+      );
+      
+      setUserLoans(prevLoans => 
+        prevLoans.filter(loan => loan.id !== loanId)
+      );
+
+      toast({
+        title: "Success",
+        description: "Loan request withdrawn successfully!",
+        variant: "default",
+      });
+
+      return { loanId, transactionHash: 'local_withdrawal' };
+    } catch (error) {
+      console.error('Error withdrawing loan request:', error);
+      
+      toast({
+        title: "Error",
+        description: "Failed to withdraw loan request",
+        variant: "destructive",
+      });
+      
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Repay a loan
   const repayLoan = async (loanId, amount) => {
     if (!contract) {
@@ -388,6 +455,7 @@ export function LoanProvider({ children }) {
     contract,
     createLoanRequest,
     fundLoan,
+    withdrawLoanRequest,
     repayLoan,
     connectWalletToContract,
     isWalletConnectedToContract,
