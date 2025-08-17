@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
+import { useWeb3 } from '../context/web3-context';
 
-export default function LoanCard({ loan, type, onFund }) {
+export default function LoanCard({ loan, type, onFund, onWithdraw, currentUserAddress }) {
   const truncateAddress = (address) => {
     if (!address) return '0x1234...5678';
     if (address.length <= 10) return address;
@@ -86,13 +87,34 @@ export default function LoanCard({ loan, type, onFund }) {
           <div className="text-sm text-muted-foreground">
             <span>{loan.purpose || 'General purpose loan'}</span>
           </div>
-          <Button
-            onClick={onFund}
-            className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300"
-          >
-            <i className="fas fa-coins mr-2"></i>
-            Fund Loan
-          </Button>
+          <div className="flex space-x-2">
+            {/* Show withdraw button only if current user is the borrower and loan is not funded */}
+            {currentUserAddress && 
+             loan.borrower && 
+             loan.borrower.toLowerCase() === currentUserAddress.toLowerCase() && 
+             !loan.isFunded && 
+             loan.isActive && (
+              <Button
+                onClick={() => onWithdraw && onWithdraw(loan.id)}
+                className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 hover:border-red-500 transition-all duration-300"
+              >
+                <i className="fas fa-times mr-2"></i>
+                Withdraw Request
+              </Button>
+            )}
+            {/* Show fund button only if current user is not the borrower */}
+            {(!currentUserAddress || 
+              !loan.borrower || 
+              loan.borrower.toLowerCase() !== currentUserAddress.toLowerCase()) && (
+              <Button
+                onClick={onFund}
+                className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300"
+              >
+                <i className="fas fa-coins mr-2"></i>
+                Fund Loan
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>

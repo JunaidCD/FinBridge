@@ -133,6 +133,38 @@ export const contractUtils = {
     }
   },
 
+  // Withdraw a loan request
+  async withdrawLoanRequest(contract, loanId) {
+    try {
+      const tx = await contract.withdrawLoanRequest(loanId);
+      const receipt = await tx.wait();
+      
+      // Find the LoanRequestWithdrawn event
+      const event = receipt.logs.find(log => {
+        try {
+          const parsed = contract.interface.parseLog(log);
+          return parsed.name === 'LoanRequestWithdrawn';
+        } catch {
+          return false;
+        }
+      });
+      
+      if (event) {
+        const parsed = contract.interface.parseLog(event);
+        return {
+          loanId: parsed.args.loanId.toString(),
+          borrower: parsed.args.borrower,
+          transactionHash: tx.hash
+        };
+      }
+      
+      return { transactionHash: tx.hash };
+    } catch (error) {
+      console.error('Error withdrawing loan request:', error);
+      throw error;
+    }
+  },
+
   // Repay a loan
   async repayLoan(contract, loanId, amount) {
     try {
@@ -296,6 +328,17 @@ export const setupEventListeners = (contract, callbacks) => {
     listeners.loanRequestCreated = true;
   }
   
+  // Loan request withdrawn event
+  if (callbacks.onLoanRequestWithdrawn) {
+    contract.on('LoanRequestWithdrawn', (loanId, borrower) => {
+      callbacks.onLoanRequestWithdrawn({
+        loanId: loanId.toString(),
+        borrower
+      });
+    });
+    listeners.loanRequestWithdrawn = true;
+  }
+  
   // Loan funded event
   if (callbacks.onLoanFunded) {
     contract.on('LoanFunded', (loanId, lender, borrower, amount) => {
@@ -334,6 +377,9 @@ export const removeEventListeners = (contract, listeners) => {
   }
   if (listeners.loanRequestCreated) {
     contract.off('LoanRequestCreated');
+  }
+  if (listeners.loanRequestWithdrawn) {
+    contract.off('LoanRequestWithdrawn');
   }
   if (listeners.loanFunded) {
     contract.off('LoanFunded');
