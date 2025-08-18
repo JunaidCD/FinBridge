@@ -129,7 +129,7 @@ export default function RepayLoan() {
           <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground text-sm mb-1">Total Remaining Balance</p>
+                <p className="text-muted-foreground text-sm mb-1">Payable Amount</p>
                 <p className="text-2xl font-bold text-red-400">{summaryStats.totalRemainingBalance} ETH</p>
               </div>
               <div className="w-12 h-12 bg-red-400/20 rounded-xl flex items-center justify-center">

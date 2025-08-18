@@ -346,6 +346,13 @@ export function Web3Provider({ children }) {
     };
   }, []);
 
+  const refreshWalletBalance = async () => {
+    if (account) {
+      const balance = await getWalletBalance(account);
+      setWalletBalance(balance);
+    }
+  };
+
   const value = {
     account,
     provider,
@@ -357,6 +364,7 @@ export function Web3Provider({ children }) {
     disconnectWallet,
     switchToHardhatNetwork,
     getWalletBalance,
+    refreshWalletBalance,
   };
 
   return (

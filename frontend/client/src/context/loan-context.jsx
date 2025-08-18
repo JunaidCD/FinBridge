@@ -22,7 +22,7 @@ export function LoanProvider({ children }) {
   const [provider, setProvider] = useState(null);
   
   // Get Web3 context - this will work because LoanProvider is wrapped by Web3Provider
-  const { account: web3Account, provider: web3Provider } = useWeb3();
+  const { account: web3Account, provider: web3Provider, refreshWalletBalance } = useWeb3();
   
   // Update account and provider when Web3 context changes
   useEffect(() => {
@@ -222,10 +222,11 @@ export function LoanProvider({ children }) {
         variant: "default",
       });
 
-      // Refresh data
+      // Refresh data and wallet balance
       console.log('Refreshing data after loan creation...');
       await fetchActiveLoanRequests();
       await fetchUserLoans();
+      await refreshWalletBalance();
       console.log('Data refresh completed');
 
       return result;
@@ -278,9 +279,10 @@ export function LoanProvider({ children }) {
         variant: "default",
       });
 
-      // Refresh data
+      // Refresh data and wallet balance
       await fetchActiveLoanRequests();
       await fetchFundedLoans();
+      await refreshWalletBalance();
 
       return result;
     } catch (error) {
@@ -325,9 +327,10 @@ export function LoanProvider({ children }) {
             variant: "default",
           });
 
-          // Refresh data
+          // Refresh data and wallet balance
           await fetchActiveLoanRequests();
           await fetchUserLoans();
+          await refreshWalletBalance();
           return result;
         } catch (contractError) {
           console.log('Contract withdrawal failed, using local withdrawal:', contractError);
@@ -382,9 +385,10 @@ export function LoanProvider({ children }) {
         variant: "default",
       });
 
-      // Refresh data
+      // Refresh data and wallet balance
       await fetchUserLoans();
       await fetchFundedLoans();
+      await refreshWalletBalance();
 
       return result;
     } catch (error) {

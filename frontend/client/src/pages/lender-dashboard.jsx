@@ -260,20 +260,61 @@ export default function LenderDashboard() {
     setFilteredLoanRequests(filteredByWithdrawal);
   }, [loanRequests]);
 
-  // Update stats based on real data
+  // Update stats based on real data for connected MetaMask account
   useEffect(() => {
-    if (fundedLoans.length > 0) {
-      const totalLent = fundedLoans.reduce((sum, loan) => sum + parseFloat(loan.amount), 0);
-      const avgReturn = fundedLoans.reduce((sum, loan) => sum + parseFloat(loan.interestRate), 0) / fundedLoans.length;
+    if (!account) {
+      // Reset stats when no account is connected
+      setStats({
+        totalLent: '0.00',
+        activeLoans: 0,
+        totalEarned: '0.00',
+        avgReturn: '0.0'
+      });
+      return;
+    }
+
+    // Filter funded loans to only include loans funded by the connected account
+    const userFundedLoans = fundedLoans.filter(loan => 
+      loan.lender && loan.lender.toLowerCase() === account.toLowerCase()
+    );
+
+    if (userFundedLoans.length > 0) {
+      // Calculate total amount lent by this user
+      const totalLent = userFundedLoans.reduce((sum, loan) => sum + parseFloat(loan.amount || 0), 0);
+      
+      // Calculate average return rate
+      const avgReturn = userFundedLoans.reduce((sum, loan) => sum + parseFloat(loan.interestRate || 0), 0) / userFundedLoans.length;
+      
+      // Count active loans (funded but not yet repaid)
+      const activeLoansCount = userFundedLoans.filter(loan => 
+        loan.isFunded && loan.isActive && !loan.isRepaid
+      ).length;
+      
+      // Calculate total earned from interest on completed/repaid loans
+      const completedLoans = userFundedLoans.filter(loan => loan.isRepaid);
+      const totalEarned = completedLoans.reduce((sum, loan) => {
+        const principal = parseFloat(loan.amount || 0);
+        const interestRate = parseFloat(loan.interestRate || 0);
+        const interestEarned = principal * (interestRate / 100);
+        return sum + interestEarned;
+      }, 0);
       
       setStats({
         totalLent: totalLent.toFixed(2),
-        activeLoans: fundedLoans.filter(loan => loan.isActive && loan.isFunded).length,
-        totalEarned: (totalLent * (avgReturn / 100)).toFixed(2),
+        activeLoans: activeLoansCount,
+        totalEarned: totalEarned.toFixed(2),
         avgReturn: avgReturn.toFixed(1)
       });
+    } else {
+      // No loans funded by this user
+      setStats({
+        totalLent: '0.00',
+        activeLoans: 0,
+        totalEarned: '0.00',
+        avgReturn: '0.0'
+      });
     }
-  }, [fundedLoans]);
+  }, [fundedLoans, account]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
