@@ -267,21 +267,39 @@ export default function RepayLoan() {
             </div>
 
             {/* Repayment Amount Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">Repayment Amount (ETH)</label>
-              <input
-                type="number"
-                value={repaymentAmount}
-                onChange={(e) => setRepaymentAmount(e.target.value)}
-                placeholder="Enter amount to repay"
-                className="w-full px-4 py-3 bg-background/50 border border-border/50 rounded-xl text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                min="0"
-                max={selectedLoan ? calculateDueAmount(selectedLoan) : 0}
-                step="0.01"
-              />
-              <p className="text-xs text-muted-foreground">
-                Maximum: {selectedLoan ? calculateDueAmount(selectedLoan) : '0'} ETH
-              </p>
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-white flex items-center">
+                <i className="fas fa-ethereum text-primary mr-2"></i>
+                Repayment Amount (ETH)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={repaymentAmount}
+                  onChange={(e) => setRepaymentAmount(e.target.value)}
+                  placeholder="0.0000"
+                  className="w-full px-4 py-4 pr-20 bg-black/40 border-2 border-primary/50 rounded-xl text-white text-xl font-bold placeholder:text-muted-foreground/80 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-black/60 transition-all duration-300 hover:border-primary/70 shadow-lg backdrop-blur-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  min="0"
+                  max={selectedLoan ? calculateDueAmount(selectedLoan) : 0}
+                  step="0.0001"
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                  <span className="text-primary font-bold text-sm">ETH</span>
+                  <i className="fas fa-coins text-secondary"></i>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <p className="text-xs text-muted-foreground">
+                  Maximum: <span className="text-primary font-semibold">{selectedLoan ? calculateDueAmount(selectedLoan) : '0'} ETH</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setRepaymentAmount(selectedLoan ? calculateDueAmount(selectedLoan) : '0')}
+                  className="text-xs text-secondary hover:text-primary transition-colors font-medium"
+                >
+                  Use Max
+                </button>
+              </div>
             </div>
 
             {/* Estimated Transaction */}

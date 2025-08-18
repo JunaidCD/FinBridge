@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeLending.sol": {
-      "lastModificationDate": 1755411582579,
-      "contentHash": "0e7196e05adcf0f9827a619f35139f8e",
+      "lastModificationDate": 1755416588842,
+      "contentHash": "41ca98f9f3f498cc42953d7004347c79",
       "sourceName": "contracts/FinBridgeLending.sol",
       "solcConfig": {
         "version": "0.8.20",
