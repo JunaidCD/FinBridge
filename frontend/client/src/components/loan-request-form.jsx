@@ -15,7 +15,6 @@ export default function LoanRequestForm({ onSubmit }) {
   
   const [formData, setFormData] = useState({
     amount: '',
-    interestRate: '5.2',
     duration: '30',
     collateral: 'ETH',
     purpose: '',
@@ -25,7 +24,8 @@ export default function LoanRequestForm({ onSubmit }) {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({
     totalRepayment: 0,
-    monthlyPayment: 0
+    monthlyPayment: 0,
+    interestRate: 0
   });
 
   // Check wallet connection to contract on mount and when account changes
@@ -42,20 +42,45 @@ export default function LoanRequestForm({ onSubmit }) {
     checkWalletConnection();
   }, [account, isWalletConnectedToContract]);
 
+  // Auto-calculate interest rate based on amount and duration
+  const calculateInterestRate = (amount, duration) => {
+    const baseRate = 5.2; // Base market rate
+    
+    // Amount-based adjustment
+    let amountAdjustment = 0;
+    if (amount >= 0.1 && amount < 1) amountAdjustment = 0;
+    else if (amount >= 1 && amount < 10) amountAdjustment = 1;
+    else if (amount >= 10 && amount < 50) amountAdjustment = 2;
+    else if (amount >= 50 && amount < 100) amountAdjustment = 3;
+    else if (amount >= 100 && amount < 500) amountAdjustment = 5;
+    else if (amount >= 500 && amount <= 1000) amountAdjustment = 7;
+    
+    // Duration-based adjustment
+    let durationAdjustment = 0;
+    const days = parseInt(duration) || 30;
+    if (days >= 7 && days <= 30) durationAdjustment = 0;
+    else if (days >= 31 && days <= 90) durationAdjustment = 1;
+    else if (days >= 91 && days <= 180) durationAdjustment = 2;
+    else if (days >= 181 && days <= 365) durationAdjustment = 3;
+    
+    return baseRate + amountAdjustment + durationAdjustment;
+  };
+
   // Calculate loan metrics in real-time
   useEffect(() => {
     const amount = parseFloat(formData.amount) || 0;
-    const rate = parseFloat(formData.interestRate) || 0;
     const days = parseInt(formData.duration) || 30;
+    const rate = calculateInterestRate(amount, days);
     
     const totalRepayment = amount * (1 + rate / 100);
     const monthlyPayment = totalRepayment / (days / 30);
     
     setCalculatedValues({
       totalRepayment: totalRepayment.toFixed(4),
-      monthlyPayment: monthlyPayment.toFixed(4)
+      monthlyPayment: monthlyPayment.toFixed(4),
+      interestRate: rate.toFixed(1)
     });
-  }, [formData.amount, formData.interestRate, formData.duration]);
+  }, [formData.amount, formData.duration]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,10 +108,10 @@ export default function LoanRequestForm({ onSubmit }) {
       }
     }
     
-    if (!formData.amount || !formData.interestRate) {
+    if (!formData.amount) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
+        description: "Please enter a loan amount",
         variant: "destructive",
       });
       return;
@@ -109,23 +134,15 @@ export default function LoanRequestForm({ onSubmit }) {
       });
       return;
     }
-
-    if (parseFloat(formData.interestRate) < 0.1) {
-      toast({
-        title: "Invalid Interest Rate",
-        description: "Minimum interest rate is 0.1%",
-        variant: "destructive",
-      });
-      return;
-    }
     
     setIsSubmitting(true);
     
     try {
-      // Create loan request on the blockchain
+      // Create loan request on the blockchain with auto-calculated interest rate
+      const autoInterestRate = calculateInterestRate(parseFloat(formData.amount), formData.duration);
       const result = await createLoanRequest({
         amount: formData.amount,
-        interestRate: formData.interestRate,
+        interestRate: autoInterestRate.toString(),
         duration: formData.duration,
         purpose: formData.purpose
       });
@@ -142,7 +159,6 @@ export default function LoanRequestForm({ onSubmit }) {
       // Reset form
       setFormData({
         amount: '',
-        interestRate: '5.2',
         duration: '30',
         collateral: 'ETH',
         purpose: '',
@@ -170,24 +186,6 @@ export default function LoanRequestForm({ onSubmit }) {
       ...prev,
       [field]: value
     }));
-  };
-
-  const getMarketRate = () => {
-    // Simulate market rate based on duration
-    const duration = parseInt(formData.duration);
-    if (duration <= 30) return '5.2';
-    if (duration <= 60) return '5.8';
-    if (duration <= 90) return '6.1';
-    return '6.5';
-  };
-
-  const getRiskLevel = () => {
-    const rate = parseFloat(formData.interestRate) || 0;
-    const marketRate = parseFloat(getMarketRate());
-    
-    if (rate < marketRate - 1) return { level: 'Low', color: 'text-green-400', icon: 'fa-shield-check' };
-    if (rate < marketRate + 1) return { level: 'Medium', color: 'text-yellow-400', icon: 'fa-balance-scale' };
-    return { level: 'High', color: 'text-red-400', icon: 'fa-exclamation-triangle' };
   };
 
   return (
@@ -280,41 +278,31 @@ export default function LoanRequestForm({ onSubmit }) {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="interestRate" className="flex items-center text-sm font-medium">
+            <Label className="flex items-center text-sm font-medium">
               <i className="fas fa-percentage text-secondary mr-2"></i>
-              Interest Rate (%) *
+              Auto-Calculated Interest Rate
             </Label>
-            <div className="relative">
-              <Input
-                id="interestRate"
-                type="number"
-                placeholder={getMarketRate()}
-                step="0.1"
-                min="0.1"
-                max="50"
-                value={formData.interestRate}
-                onChange={(e) => handleChange('interestRate', e.target.value)}
-                className="glass-card border-border focus:border-primary transition-all duration-300 h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                required
-                disabled={!account || !isWalletConnected}
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <span className="text-xs text-muted-foreground">Market: {getMarketRate()}%</span>
+            <div className="glass-card border border-secondary/30 rounded-xl p-4 bg-secondary/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-secondary">
+                    {calculatedValues.interestRate || '5.2'}%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Automatically calculated based on amount and duration
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <i className="fas fa-info-circle text-blue-400"></i>
+                    <span className="text-xs text-blue-400 font-medium">Smart Pricing</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Base: 5.2% + Adjustments
+                  </p>
+                </div>
               </div>
             </div>
-            {formData.interestRate && (
-              <div className="flex items-center space-x-2">
-                <i className={`fas ${getRiskLevel().icon} ${getRiskLevel().color}`}></i>
-                <span className={`text-xs font-medium ${getRiskLevel().color}`}>
-                  {getRiskLevel().level} Risk
-                </span>
-              </div>
-            )}
-            {formData.interestRate && (parseFloat(formData.interestRate) < 0.1 || parseFloat(formData.interestRate) > 50) && (
-              <p className="text-xs text-red-400">
-                Interest rate must be between 0.1% and 50%
-              </p>
-            )}
           </div>
         </div>
         
@@ -341,7 +329,7 @@ export default function LoanRequestForm({ onSubmit }) {
         </div>
 
         {/* Loan Calculations */}
-        {formData.amount && formData.interestRate && (
+        {formData.amount && (
           <div className="glass-card p-6 rounded-2xl border border-primary/20">
             <h4 className="text-lg font-semibold mb-4 flex items-center">
               <i className="fas fa-calculator text-primary mr-3"></i>
@@ -392,10 +380,7 @@ export default function LoanRequestForm({ onSubmit }) {
               !isWalletConnected ||
               !formData.amount || 
               parseFloat(formData.amount) < 0.01 || 
-              parseFloat(formData.amount) > 1000 || 
-              !formData.interestRate || 
-              parseFloat(formData.interestRate) < 0.1 || 
-              parseFloat(formData.interestRate) > 50
+              parseFloat(formData.amount) > 1000
             }
             className="w-full button-advanced bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 h-14 text-lg font-semibold rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
