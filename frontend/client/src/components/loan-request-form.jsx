@@ -101,6 +101,15 @@ export default function LoanRequestForm({ onSubmit }) {
       return;
     }
 
+    if (parseFloat(formData.amount) > 1000) {
+      toast({
+        title: "Invalid Amount",
+        description: "Maximum 1000 ETH can be asked at a time",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (parseFloat(formData.interestRate) < 0.1) {
       toast({
         title: "Invalid Interest Rate",
@@ -244,7 +253,7 @@ export default function LoanRequestForm({ onSubmit }) {
                 placeholder="0.0"
                 step="0.01"
                 min="0.01"
-                max="100"
+                max="1000"
                 value={formData.amount}
                 onChange={(e) => handleChange('amount', e.target.value)}
                 className="pl-12 glass-card border-border focus:border-primary transition-all duration-300 h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -261,6 +270,11 @@ export default function LoanRequestForm({ onSubmit }) {
             {formData.amount && parseFloat(formData.amount) < 0.01 && (
               <p className="text-xs text-red-400">
                 Minimum loan amount is 0.01 ETH
+              </p>
+            )}
+            {formData.amount && parseFloat(formData.amount) > 1000 && (
+              <p className="text-xs text-red-400">
+                Maximum 1000 ETH can be asked at a time
               </p>
             )}
           </div>
@@ -378,6 +392,7 @@ export default function LoanRequestForm({ onSubmit }) {
               !isWalletConnected ||
               !formData.amount || 
               parseFloat(formData.amount) < 0.01 || 
+              parseFloat(formData.amount) > 1000 || 
               !formData.interestRate || 
               parseFloat(formData.interestRate) < 0.1 || 
               parseFloat(formData.interestRate) > 50
