@@ -73,25 +73,35 @@ export const contractUtils = {
   // Create a new loan request
   async createLoanRequest(contract, amount, interestRate, duration) {
     try {
+      console.log('Creating loan request with params:', { amount, interestRate, duration });
+      
       // Convert amount to wei
       const amountInWei = ethers.parseEther(amount.toString());
+      console.log('Amount in wei:', amountInWei.toString());
       
       // Convert interest rate and duration to integers
       const interestRateInt = Math.floor(parseFloat(interestRate));
       const durationInt = parseInt(duration);
+      console.log('Converted params:', { interestRateInt, durationInt });
       
+      console.log('Calling contract.createLoanRequest...');
       const tx = await contract.createLoanRequest(
         amountInWei,
         interestRateInt,
         durationInt
       );
+      console.log('Transaction sent:', tx.hash);
       
+      console.log('Waiting for transaction confirmation...');
       const receipt = await tx.wait();
+      console.log('Transaction confirmed:', receipt.hash);
+      console.log('Transaction logs:', receipt.logs.length);
       
       // Find the LoanRequestCreated event
       const event = receipt.logs.find(log => {
         try {
           const parsed = contract.interface.parseLog(log);
+          console.log('Parsed event:', parsed.name);
           return parsed.name === 'LoanRequestCreated';
         } catch {
           return false;
@@ -100,6 +110,7 @@ export const contractUtils = {
       
       if (event) {
         const parsed = contract.interface.parseLog(event);
+        console.log('LoanRequestCreated event found:', parsed.args);
         return {
           loanId: parsed.args.loanId.toString(),
           borrower: parsed.args.borrower,
@@ -108,11 +119,14 @@ export const contractUtils = {
           duration: parsed.args.duration.toString(),
           transactionHash: tx.hash
         };
+      } else {
+        console.log('LoanRequestCreated event not found in transaction logs');
       }
       
       return { transactionHash: tx.hash };
     } catch (error) {
       console.error('Error creating loan request:', error);
+      console.error('Error details:', error.message, error.code, error.reason);
       throw error;
     }
   },
@@ -207,28 +221,54 @@ export const contractUtils = {
   // Get all active loan requests
   async getActiveLoanRequests(contract) {
     try {
-      console.log('Calling getActiveLoanRequests on contract:', contract);
+      console.log('Calling getActiveLoanRequests on contract:', contract.target || contract.address);
+      
+      // First check if the contract method exists
+      if (typeof contract.getActiveLoanRequests !== 'function') {
+        console.error('getActiveLoanRequests method not found on contract');
+        return [];
+      }
+      
       const loanIds = await contract.getActiveLoanRequests();
       console.log('Received loan IDs:', loanIds);
+      console.log('Loan IDs type:', typeof loanIds, 'Length:', loanIds.length);
+      
+      if (!loanIds || loanIds.length === 0) {
+        console.log('No loan IDs returned from contract');
+        return [];
+      }
+      
       const loans = [];
       
-      for (const loanId of loanIds) {
+      for (let i = 0; i < loanIds.length; i++) {
+        const loanId = loanIds[i];
         try {
           // Convert BigInt to string safely
           const loanIdStr = typeof loanId === 'bigint' ? loanId.toString() : loanId.toString();
-          console.log('Fetching loan details for ID:', loanIdStr);
+          console.log(`Fetching loan details for ID ${i + 1}/${loanIds.length}:`, loanIdStr);
           const loan = await this.getLoanRequest(contract, loanIdStr);
           console.log('Loan details:', loan);
-          loans.push(loan);
+          
+          // Only add active, unfunded loans to the marketplace
+          if (loan.isActive && !loan.isFunded) {
+            loans.push(loan);
+            console.log('Added loan to marketplace:', loanIdStr);
+          } else {
+            console.log('Skipping loan (not active or already funded):', loanIdStr, {
+              isActive: loan.isActive,
+              isFunded: loan.isFunded
+            });
+          }
         } catch (error) {
           console.error(`Error getting loan ${loanId}:`, error);
         }
       }
       
-      console.log('Total loans found:', loans.length);
+      console.log('Total active, unfunded loans found:', loans.length);
       return loans;
     } catch (error) {
       console.error('Error getting active loan requests:', error);
+      console.error('Error details:', error.message, error.code);
       // Return empty array instead of throwing error
       return [];
     }

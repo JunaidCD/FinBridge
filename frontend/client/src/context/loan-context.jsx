@@ -82,14 +82,17 @@ export function LoanProvider({ children }) {
       console.log('Setting up event listeners for contract');
       const listeners = setupEventListeners(contract, {
         onLoanRequestCreated: (loanData) => {
-          console.log('New loan request created:', loanData);
+          console.log('Event: New loan request created:', loanData);
           toast({
             title: "New Loan Request",
             description: `${loanData.amount} ETH loan request created`,
             variant: "default",
           });
-          // Refresh loan requests
-          fetchActiveLoanRequests();
+          // Add delay before refreshing to ensure blockchain state is updated
+          setTimeout(() => {
+            console.log('Refreshing loan requests after event...');
+            fetchActiveLoanRequests();
+          }, 1000);
         },
         onLoanFunded: (fundData) => {
           console.log('Loan funded:', fundData);
@@ -145,21 +148,44 @@ export function LoanProvider({ children }) {
 
   // Fetch active loan requests from the contract
   const fetchActiveLoanRequests = async () => {
-    if (!contract) return;
+    if (!contract) {
+      console.log('Contract not available for fetching loan requests');
+      return;
+    }
     
     try {
       setIsLoading(true);
-      console.log('Fetching active loan requests...');
+      console.log('Fetching active loan requests from contract:', contract.target || contract.address);
+      
+      // First check if contract is properly connected
+      try {
+        const nextLoanId = await contract.nextLoanId();
+        console.log('Contract is accessible, next loan ID:', nextLoanId.toString());
+      } catch (contractError) {
+        console.error('Contract is not accessible:', contractError);
+        setLoanRequests([]);
+        return;
+      }
+      
       const loans = await contractUtils.getActiveLoanRequests(contract);
       console.log('Raw loans from contract:', loans);
+      
+      if (!loans || loans.length === 0) {
+        console.log('No active loan requests found');
+        setLoanRequests([]);
+        return;
+      }
+      
       const formattedLoans = loans.map(formatLoanData);
       console.log('Formatted loans:', formattedLoans);
+      console.log('Setting loan requests state with', formattedLoans.length, 'loans');
       setLoanRequests(formattedLoans);
     } catch (error) {
       console.error('Error fetching active loan requests:', error);
+      setLoanRequests([]); // Set empty array on error
       toast({
         title: "Error",
-        description: "Failed to fetch loan requests",
+        description: "Failed to fetch loan requests: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -209,12 +235,14 @@ export function LoanProvider({ children }) {
       }
 
       // Create the loan request
+      console.log('Creating loan request with data:', loanData);
       const result = await contractUtils.createLoanRequest(
         contract,
         loanData.amount,
         loanData.interestRate,
         loanData.duration
       );
+      console.log('Loan request created, result:', result);
 
       toast({
         title: "Success",
@@ -222,6 +250,10 @@ export function LoanProvider({ children }) {
         variant: "default",
       });
 
+      // Add a small delay to ensure blockchain state is updated
+      console.log('Waiting for blockchain state update...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       // Refresh data and wallet balance
       console.log('Refreshing data after loan creation...');
       await fetchActiveLoanRequests();
