@@ -89,6 +89,10 @@ cd FinBridge
 ```bash
 cd backend
 npm install
+# Recommended: Install specific versions for compatibility
+npm install @nomicfoundation/hardhat-toolbox@^4.0.0
+npm install hardhat@^2.26.3
+npm install @openzeppelin/contracts@^4.9.6
 npx hardhat node
 ```
 > This starts a local Ethereum network on `http://127.0.0.1:8545`
@@ -252,9 +256,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support & Community
 
-- **Discord**: [Join our community](https://discord.gg/finbridge)
-- **Twitter**: [@FinBridgeDeFi](https://twitter.com/FinBridgeDeFi)
-- **Email**: support@finbridge.io
+- **Discord**: junaid_mollah_89812
+- **Twitter**: [@JunaidMollah5](https://twitter.com/JunaidMollah5)
+- **Email**: junaidmollah17@gmail.com
 
 ## 🗺️ Roadmap
 
