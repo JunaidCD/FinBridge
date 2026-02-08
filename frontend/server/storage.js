@@ -1,4 +1,4 @@
-import { User, InsertUser } from "@shared/schema.js";
+import { User, InsertUser } from "../shared/schema.js";
 import { randomUUID } from "crypto";
 
 // modify the interface with any CRUD methods
