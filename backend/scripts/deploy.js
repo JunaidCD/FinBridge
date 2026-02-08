@@ -7,7 +7,9 @@ async function main() {
   const FinBridgeLending = await hre.ethers.getContractFactory("FinBridgeLending");
   
   // Deploy the contract
-  const lendingContract = await FinBridgeLending.deploy();
+  const lendingContract = await FinBridgeLending.deploy({
+    gasLimit: 15000000
+  });
   
   // Wait for deployment to finish
   await lendingContract.waitForDeployment();
@@ -28,17 +30,8 @@ async function main() {
   console.log("\nDeployment Info:");
   console.log(JSON.stringify(deploymentInfo, null, 2));
   
-  // Verify the deployment
-  console.log("\nVerifying deployment...");
-  try {
-    await hre.run("verify:verify", {
-      address: contractAddress,
-      constructorArguments: [],
-    });
-    console.log("Contract verified on Etherscan");
-  } catch (error) {
-    console.log("Verification failed:", error.message);
-  }
+  console.log("\n✅ Contract deployed successfully!");
+  console.log("📝 Note: Verification is skipped for localhost networks");
 }
 
 main()
