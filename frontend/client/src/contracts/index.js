@@ -73,15 +73,13 @@ export const contractUtils = {
   // Create a new loan request
   async createLoanRequest(contract, amount, duration) {
     try {
-      console.log('Creating loan request with params:', { amount, duration });
+      console.log('Creating loan request:', amount, 'ETH for', duration, 'days');
       
       // Convert amount to wei
       const amountInWei = ethers.parseEther(amount.toString());
-      console.log('Amount in wei:', amountInWei.toString());
       
       // Convert duration from days to seconds (contract expects seconds)
       const durationInSeconds = parseInt(duration) * 24 * 60 * 60; // days * 24 hours * 60 minutes * 60 seconds
-      console.log('Duration in seconds:', durationInSeconds);
       
       console.log('Calling contract.createLoanRequest...');
       const tx = await contract.createLoanRequest(
