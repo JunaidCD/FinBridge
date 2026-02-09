@@ -1,6 +1,6 @@
 // contracts/loanContract.js
 
-// ✅ Correct ABI for FinBridgeLending smart contract
+// ✅ Updated ABI for enhanced FinBridgeLending smart contract
 export const LOAN_CONTRACT_ABI = [
   {
     "anonymous": false,
@@ -195,6 +195,30 @@ export const LOAN_CONTRACT_ABI = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "duration",
+        "type": "uint256"
+      }
+    ],
+    "name": "calculateInterestRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -216,11 +240,6 @@ export const LOAN_CONTRACT_ABI = [
       {
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "interestRate",
         "type": "uint256"
       },
       {
@@ -314,6 +333,11 @@ export const LOAN_CONTRACT_ABI = [
           {
             "internalType": "uint256",
             "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
             "type": "uint256"
           },
           {
@@ -467,6 +491,11 @@ export const LOAN_CONTRACT_ABI = [
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
         "internalType": "bool",
         "name": "isActive",
         "type": "bool"
@@ -590,6 +619,16 @@ export const LOAN_CONTRACT_ABI = [
         "internalType": "bool",
         "name": "isRegistered",
         "type": "bool"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "loanRequests",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "fundedLoans",
+        "type": "uint256[]"
       },
       {
         "internalType": "uint256",

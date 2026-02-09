@@ -71,24 +71,22 @@ export const contractUtils = {
   },
 
   // Create a new loan request
-  async createLoanRequest(contract, amount, interestRate, duration) {
+  async createLoanRequest(contract, amount, duration) {
     try {
-      console.log('Creating loan request with params:', { amount, interestRate, duration });
+      console.log('Creating loan request with params:', { amount, duration });
       
       // Convert amount to wei
       const amountInWei = ethers.parseEther(amount.toString());
       console.log('Amount in wei:', amountInWei.toString());
       
-      // Convert interest rate and duration to integers
-      const interestRateInt = Math.floor(parseFloat(interestRate));
-      const durationInt = parseInt(duration);
-      console.log('Converted params:', { interestRateInt, durationInt });
+      // Convert duration from days to seconds (contract expects seconds)
+      const durationInSeconds = parseInt(duration) * 24 * 60 * 60; // days * 24 hours * 60 minutes * 60 seconds
+      console.log('Duration in seconds:', durationInSeconds);
       
       console.log('Calling contract.createLoanRequest...');
       const tx = await contract.createLoanRequest(
         amountInWei,
-        interestRateInt,
-        durationInt
+        durationInSeconds
       );
       console.log('Transaction sent:', tx.hash);
       
@@ -207,6 +205,7 @@ export const contractUtils = {
         interestRate: typeof loan.interestRate === 'bigint' ? loan.interestRate.toString() : loan.interestRate.toString(),
         duration: typeof loan.duration === 'bigint' ? loan.duration.toString() : loan.duration.toString(),
         timestamp: new Date(Number(loan.timestamp) * 1000).toISOString(),
+        deadline: new Date(Number(loan.deadline) * 1000).toISOString(),
         isActive: loan.isActive,
         isFunded: loan.isFunded,
         lender: loan.lender,

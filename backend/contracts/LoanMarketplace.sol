@@ -5,13 +5,18 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
+/**
+ * @title LoanMarketplace
+ * @dev P2P lending protocol with dynamic interest rates and deadline enforcement
+ * @notice This is a demonstration contract for educational purposes
+ */
+contract LoanMarketplace is ReentrancyGuard, Pausable, Ownable {
     
     struct LoanRequest {
         uint256 id;
         address borrower;
         uint256 amount;
-        uint256 interestRate;
+        uint256 interestRate; // in basis points (e.g., 520 = 5.2%)
         uint256 duration;
         uint256 timestamp;
         uint256 deadline;
@@ -52,12 +57,12 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     
     // Modifiers
     modifier onlyConnectedWallet() {
-        require(connectedWallets[msg.sender], "Wallet not connected. Please connect your MetaMask wallet first.");
+        require(connectedWallets[msg.sender], "Wallet not connected");
         _;
     }
     
     modifier onlyBorrower(uint256 loanId) {
-        require(loanRequests[loanId].borrower == msg.sender, "Only the borrower can perform this action");
+        require(loanRequests[loanId].borrower == msg.sender, "Only borrower can perform this action");
         _;
     }
     
@@ -79,28 +84,6 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     modifier loanNotExpired(uint256 loanId) {
         require(block.timestamp <= loanRequests[loanId].deadline, "Loan request has expired");
         _;
-    }
-    
-    // Wallet connection functions
-    function connectWallet() external {
-        require(!connectedWallets[msg.sender], "Wallet already connected");
-        connectedWallets[msg.sender] = true;
-        
-        if (!users[msg.sender].isRegistered) {
-            users[msg.sender].isRegistered = true;
-        }
-        
-        emit WalletConnected(msg.sender);
-    }
-    
-    function disconnectWallet() external {
-        require(connectedWallets[msg.sender], "Wallet not connected");
-        connectedWallets[msg.sender] = false;
-        emit WalletDisconnected(msg.sender);
-    }
-    
-    function isWalletConnected(address user) external view returns (bool) {
-        return connectedWallets[user];
     }
     
     /**
@@ -149,22 +132,42 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         return interestRate; // Return in basis points (e.g., 520 = 5.2%)
     }
     
-    // Loan request functions
+    function connectWallet() external {
+        require(!connectedWallets[msg.sender], "Wallet already connected");
+        connectedWallets[msg.sender] = true;
+        
+        if (!users[msg.sender].isRegistered) {
+            users[msg.sender].isRegistered = true;
+        }
+        
+        emit WalletConnected(msg.sender);
+    }
+    
+    function disconnectWallet() external {
+        require(connectedWallets[msg.sender], "Wallet not connected");
+        connectedWallets[msg.sender] = false;
+        emit WalletDisconnected(msg.sender);
+    }
+    
+    function isWalletConnected(address user) external view returns (bool) {
+        return connectedWallets[user];
+    }
+    
+    /**
+     * @dev Create a new loan request with auto-calculated interest rate
+     */
     function createLoanRequest(uint256 amount, uint256 duration) 
         external 
         onlyConnectedWallet 
         whenNotPaused 
         nonReentrant 
     {
-        // Enhanced validation with realistic bounds
         require(amount >= MIN_LOAN_AMOUNT && amount <= MAX_LOAN_AMOUNT, 
                 "Amount must be between 0.01 and 1000 ETH");
         require(duration >= MIN_DURATION && duration <= MAX_DURATION, 
                 "Duration must be between 7 days and 365 days");
         
-        // Auto-calculate interest rate based on amount and duration
         uint256 calculatedInterestRate = calculateInterestRate(amount, duration);
-        
         uint256 loanId = nextLoanId++;
         uint256 deadline = block.timestamp + duration;
         
@@ -187,6 +190,9 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         emit LoanRequestCreated(loanId, msg.sender, amount, calculatedInterestRate, duration);
     }
     
+    /**
+     * @dev Fund an existing loan request
+     */
     function fundLoan(uint256 loanId) 
         external 
         payable 
@@ -210,13 +216,15 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         users[msg.sender].totalLent += loan.amount;
         users[loan.borrower].totalBorrowed += loan.amount;
         
-        // Transfer ETH to borrower
         (bool success, ) = loan.borrower.call{value: msg.value}("");
         require(success, "Transfer to borrower failed");
         
         emit LoanFunded(loanId, msg.sender, loan.borrower, loan.amount);
     }
     
+    /**
+     * @dev Withdraw a loan request (borrower only)
+     */
     function withdrawLoanRequest(uint256 loanId) 
         external 
         onlyBorrower(loanId) 
@@ -232,6 +240,9 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         emit LoanRequestWithdrawn(loanId, msg.sender);
     }
     
+    /**
+     * @dev Repay a funded loan
+     */
     function repayLoan(uint256 loanId) 
         external 
         payable 
@@ -248,7 +259,6 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         
         loan.isActive = false;
         
-        // Transfer repayment to lender
         (bool success, ) = loan.lender.call{value: msg.value}("");
         require(success, "Transfer to lender failed");
         
@@ -260,6 +270,9 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         return loanRequests[loanId];
     }
     
+    /**
+     * @dev Get all active, non-funded, non-expired loan requests
+     */
     function getActiveLoanRequests() external view returns (uint256[] memory) {
         uint256 count = 0;
         uint256 totalLoans = nextLoanId - 1;
@@ -314,4 +327,4 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
         (bool success, ) = owner().call{value: address(this).balance}("");
         require(success, "Emergency withdrawal failed");
     }
-} 
+}

@@ -239,7 +239,6 @@ export function LoanProvider({ children }) {
       const result = await contractUtils.createLoanRequest(
         contract,
         loanData.amount,
-        loanData.interestRate,
         loanData.duration
       );
       console.log('Loan request created, result:', result);

@@ -317,13 +317,13 @@ export default function LoanRequestForm({ onSubmit }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">7 days (Short-term)</SelectItem>
+              <SelectItem value="7">7 days (Minimum)</SelectItem>
               <SelectItem value="14">14 days</SelectItem>
               <SelectItem value="30">30 days (Popular)</SelectItem>
               <SelectItem value="60">60 days</SelectItem>
               <SelectItem value="90">90 days</SelectItem>
               <SelectItem value="180">180 days (Long-term)</SelectItem>
-              <SelectItem value="365">365 days (Extended)</SelectItem>
+              <SelectItem value="365">365 days (Maximum)</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -249,10 +249,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🛡️ Security
 
-- Smart contracts audited for common vulnerabilities
-- Multi-layered security architecture
-- Regular security updates and patches
-- Bug bounty program (coming soon)
+- Basic security mitigations implemented using OpenZeppelin libraries
+- Reentrancy protection and access controls in place
+- No formal security audit conducted
+- Use at your own risk for educational purposes
 
 ## 📞 Support & Community
 
