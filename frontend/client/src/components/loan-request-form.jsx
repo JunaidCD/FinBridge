@@ -317,38 +317,16 @@ export default function LoanRequestForm({ onSubmit }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">7 days (Minimum)</SelectItem>
-              <SelectItem value="14">14 days</SelectItem>
-              <SelectItem value="30">30 days (Popular)</SelectItem>
-              <SelectItem value="60">60 days</SelectItem>
-              <SelectItem value="90">90 days</SelectItem>
-              <SelectItem value="180">180 days (Long-term)</SelectItem>
-              <SelectItem value="365">365 days (Maximum)</SelectItem>
+              <SelectItem value="7" className="capitalize">7 days (Minimum)</SelectItem>
+              <SelectItem value="14" className="capitalize">14 days</SelectItem>
+              <SelectItem value="30" className="capitalize">30 days (Popular)</SelectItem>
+              <SelectItem value="60" className="capitalize">60 days</SelectItem>
+              <SelectItem value="90" className="capitalize">90 days</SelectItem>
+              <SelectItem value="180" className="capitalize">180 days (Long-term)</SelectItem>
+              <SelectItem value="365" className="capitalize">365 days (Maximum)</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        {/* Loan Calculations */}
-        {formData.amount && (
-          <div className="glass-card p-6 rounded-2xl border border-primary/20">
-            <h4 className="text-lg font-semibold mb-4 flex items-center">
-              <i className="fas fa-calculator text-primary mr-3"></i>
-              Loan Summary
-            </h4>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Total Repayment</p>
-                <p className="text-2xl font-bold text-primary">{calculatedValues.totalRepayment} ETH</p>
-              </div>
-              <div className="text-center">
-                <p className="text-muted-foreground text-sm mb-1">Interest Amount</p>
-                <p className="text-2xl font-bold text-green-400">
-                  {(calculatedValues.totalRepayment - parseFloat(formData.amount || 0)).toFixed(4)} ETH
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Loan Purpose */}
         <div className="space-y-2">
