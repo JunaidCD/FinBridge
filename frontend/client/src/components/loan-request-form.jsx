@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select?v=2';
 import { useLoan } from '../context/loan-context';
 import { useWeb3 } from '../context/web3-context';
 import { useToast } from '../hooks/use-toast';
@@ -317,13 +317,13 @@ export default function LoanRequestForm({ onSubmit }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7" className="capitalize">7 days (Minimum)</SelectItem>
-              <SelectItem value="14" className="capitalize">14 days</SelectItem>
-              <SelectItem value="30" className="capitalize">30 days (Popular)</SelectItem>
-              <SelectItem value="60" className="capitalize">60 days</SelectItem>
-              <SelectItem value="90" className="capitalize">90 days</SelectItem>
-              <SelectItem value="180" className="capitalize">180 days (Long-term)</SelectItem>
-              <SelectItem value="365" className="capitalize">365 days (Maximum)</SelectItem>
+              <SelectItem value="7" className="capitalize" style={{textTransform: 'capitalize'}}>7 days (Minimum)</SelectItem>
+              <SelectItem value="14" className="capitalize" style={{textTransform: 'capitalize'}}>14 days</SelectItem>
+              <SelectItem value="30" className="capitalize" style={{textTransform: 'capitalize'}}>30 days (Popular)</SelectItem>
+              <SelectItem value="60" className="capitalize" style={{textTransform: 'capitalize'}}>60 days</SelectItem>
+              <SelectItem value="90" className="capitalize" style={{textTransform: 'capitalize'}}>90 days</SelectItem>
+              <SelectItem value="180" className="capitalize" style={{textTransform: 'capitalize'}}>180 days (Long-term)</SelectItem>
+              <SelectItem value="365" className="capitalize" style={{textTransform: 'capitalize'}}>365 days (Maximum)</SelectItem>
             </SelectContent>
           </Select>
         </div>
