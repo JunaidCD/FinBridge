@@ -228,6 +228,316 @@
       "artifacts": [
         "LoanMarketplace"
       ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeAnalytics.sol": {
+      "lastModificationDate": 1770652022488,
+      "contentHash": "b2f65b03dec0abea21772334b86d2779",
+      "sourceName": "contracts/FinBridgeAnalytics.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeAnalytics"
+      ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeYieldFarming.sol": {
+      "lastModificationDate": 1770652176740,
+      "contentHash": "dbb166fe76b86a94c5b9fa2487d73e47",
+      "sourceName": "contracts/FinBridgeYieldFarming.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeYieldFarming"
+      ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeStaking.sol": {
+      "lastModificationDate": 1770652153045,
+      "contentHash": "72de8ef99ed58429b85d9aabd4deec70",
+      "sourceName": "contracts/FinBridgeStaking.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeStaking"
+      ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeRewards.sol": {
+      "lastModificationDate": 1770652107407,
+      "contentHash": "6df99baf0dc15ec07b6f7c0e861f8bbf",
+      "sourceName": "contracts/FinBridgeRewards.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeRewards",
+        "FinBridgeRewardsToken"
+      ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeMultiSig.sol": {
+      "lastModificationDate": 1770734355291,
+      "contentHash": "02b3705416e554b8038404dfe3122fda",
+      "sourceName": "contracts/FinBridgeMultiSig.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeMultiSig"
+      ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeInsurance.sol": {
+      "lastModificationDate": 1770651984814,
+      "contentHash": "bc4e81fdda1a9dd3359dedf1aa9e3917",
+      "sourceName": "contracts/FinBridgeInsurance.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeInsurance"
+      ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeGovernance.sol": {
+      "lastModificationDate": 1770652130734,
+      "contentHash": "d27123b109e6a5c56230a4103e37584f",
+      "sourceName": "contracts/FinBridgeGovernance.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeGovernance"
+      ]
+    },
+    "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeExtensions.sol": {
+      "lastModificationDate": 1770651960105,
+      "contentHash": "4d064b5abaf7adf6dee7016e4c65466b",
+      "sourceName": "contracts/FinBridgeExtensions.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FinBridgeExtensions"
+      ]
     }
   }
 }

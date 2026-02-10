@@ -16,11 +16,11 @@ contract FinBridgeMultiSig is ReentrancyGuard, Ownable {
         bytes data;
         bool executed;
         uint256 numConfirmations;
-        mapping(address => bool) confirmations;
         uint256 createdAt;
     }
     
     mapping(uint256 => Transaction) public transactions;
+    mapping(uint256 => mapping(address => bool)) public confirmations;
     mapping(address => bool) public isOwner;
     address[] public owners;
     uint256 public requiredConfirmations;
@@ -43,7 +43,7 @@ contract FinBridgeMultiSig is ReentrancyGuard, Ownable {
     }
     
     modifier confirmated(uint256 transactionId) {
-        require(transactions[transactionId].confirmations[msg.sender], "Transaction not confirmed");
+        require(confirmations[transactionId][msg.sender], "Transaction not confirmed");
         _;
     }
     
@@ -82,9 +82,9 @@ contract FinBridgeMultiSig is ReentrancyGuard, Ownable {
     function confirmTransaction(uint256 transactionId) external onlyOwners notExecuted(transactionId) {
         Transaction storage transaction = transactions[transactionId];
         
-        require(!transaction.confirmations[msg.sender], "Transaction already confirmed");
+        require(!confirmations[transactionId][msg.sender], "Transaction already confirmed");
         
-        transaction.confirmations[msg.sender] = true;
+        confirmations[transactionId][msg.sender] = true;
         transaction.numConfirmations++;
         
         emit TransactionConfirmed(transactionId, msg.sender);
@@ -114,7 +114,7 @@ contract FinBridgeMultiSig is ReentrancyGuard, Ownable {
     }
     
     function isConfirmed(uint256 transactionId, address owner) external view returns (bool) {
-        return transactions[transactionId].confirmations[owner];
+        return confirmations[transactionId][owner];
     }
     
     function addOwner(address newOwner) external onlyOwners {
