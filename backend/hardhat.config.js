@@ -16,7 +16,7 @@ export default {
       chainId: 31337,
       blockGasLimit: 30000000,
       allowUnlimitedContractSize: true,
-      gas: 30000000,
+      gas: 12000000,
       gasPrice: 20000000000
     },
     localhost: {
@@ -24,7 +24,7 @@ export default {
       chainId: 31337,
       blockGasLimit: 30000000,
       allowUnlimitedContractSize: true,
-      gas: 30000000,
+      gas: 12000000,
       gasPrice: 20000000000
     }
   }

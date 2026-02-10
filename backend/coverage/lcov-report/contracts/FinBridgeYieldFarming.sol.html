@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts\FinBridgeYieldFarming.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> FinBridgeYieldFarming.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>0/23</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>0/22</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>0/7</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">0% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>0/31</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+&nbsp;
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+&nbsp;
+/**
+ * @title FinBridge Yield Farming
+ * @dev Yield farming protocol for liquidity providers
+ */
+contract FinBridgeYieldFarming is ReentrancyGuard, Ownable {
+    
+    struct Farm {
+        uint256 id;
+        address farmer;
+        uint256 lpTokenAmount;
+        uint256 rewardDebt;
+        uint256 lastHarvestTime;
+        bool isActive;
+        uint256 createdAt;
+    }
+    
+    struct PoolInfo {
+        address lpToken;
+        uint256 allocPoint;
+        uint256 lastRewardTime;
+        uint256 accRewardPerShare;
+        uint256 totalLpSupply;
+    }
+    
+    mapping(uint256 =&gt; PoolInfo) public poolInfo;
+    mapping(uint256 =&gt; Farm) public farms;
+    mapping(address =&gt; uint256) public userFarmCount;
+    
+    uint256 public constant REWARD_PER_SECOND = 1000000000000000000; // 0.000001 FBR per second
+    uint256 public constant BONUS_MULTIPLIER = 2; // 2x bonus for early farmers
+    
+    uint256 public nextFarmId = 1;
+    uint256 public nextPoolId = 1;
+    
+    event FarmCreated(uint256 indexed farmId, address indexed farmer, uint256 lpAmount);
+    event Harvested(address indexed farmer, uint256 farmId, uint256 rewardAmount);
+    
+<span class="fstat-no" title="function not covered" >    function addPool(address lpToken, uint256 allocPoint) external onlyOwner {</span>
+        poolInfo[nextPoolId] = PoolInfo({
+            lpToken: lpToken,
+            allocPoint: allocPoint,
+            lastRewardTime: block.timestamp,
+            accRewardPerShare: 0,
+            totalLpSupply: 0
+        });
+        
+        nextPoolId++;
+    }
+    
+<span class="fstat-no" title="function not covered" >    function createFarm(uint256 poolId, uint256 lpAmount) external nonReentrant {</span>
+<span class="cstat-no" title="statement not covered" >        require(poolId &lt; nextPoolId, "Invalid pool ID")</span>;
+<span class="cstat-no" title="statement not covered" >        require(lpAmount &gt; 0, "LP amount must be greater than 0")</span>;
+        
+<span class="cstat-no" title="statement not covered" >        PoolInfo storage pool = poolInfo[poolId];</span>
+        
+        farms[nextFarmId] = Farm({
+            id: nextFarmId,
+            farmer: msg.sender,
+            lpTokenAmount: lpAmount,
+            rewardDebt: 0,
+            lastHarvestTime: block.timestamp,
+            isActive: true,
+            createdAt: block.timestamp
+        });
+        
+        userFarmCount[msg.sender]++;
+        pool.totalLpSupply += lpAmount;
+        
+<span class="cstat-no" title="statement not covered" >        emit FarmCreated(nextFarmId, msg.sender, lpAmount);</span>
+        nextFarmId++;
+    }
+    
+<span class="fstat-no" title="function not covered" >    function harvest(uint256 farmId) external nonReentrant {</span>
+<span class="cstat-no" title="statement not covered" >        require(farms[farmId].isActive, "Farm not found")</span>;
+<span class="cstat-no" title="statement not covered" >        require(farms[farmId].farmer == msg.sender, "Not your farm")</span>;
+        
+<span class="cstat-no" title="statement not covered" >        Farm storage farm = farms[farmId];</span>
+<span class="cstat-no" title="statement not covered" >        PoolInfo storage pool = poolInfo[farmId];</span>
+        
+<span class="cstat-no" title="statement not covered" >        uint256 pendingReward = calculatePendingReward(farmId, msg.sender);</span>
+        
+<span class="cstat-no" title="statement not covered" >        if (pendingReward &gt; 0) {</span>
+            farm.rewardDebt = pendingReward;
+            farm.lastHarvestTime = block.timestamp;
+            
+<span class="cstat-no" title="statement not covered" >            (bool success, ) = msg.sender.call{value: pendingReward}("");</span>
+<span class="cstat-no" title="statement not covered" >            require(success, "Transfer failed")</span>;
+            
+<span class="cstat-no" title="statement not covered" >            emit Harvested(msg.sender, farmId, pendingReward);</span>
+        }
+    }
+    
+<span class="fstat-no" title="function not covered" >    function calculatePendingReward(uint256 farmId, address user) internal view returns (uint256) {</span>
+<span class="cstat-no" title="statement not covered" >        if (!farms[farmId].isActive) <span class="cstat-no" title="statement not covered" >return 0;</span></span>
+        
+<span class="cstat-no" title="statement not covered" >        Farm storage farm = farms[farmId];</span>
+<span class="cstat-no" title="statement not covered" >        PoolInfo storage pool = poolInfo[farmId];</span>
+        
+<span class="cstat-no" title="statement not covered" >        uint256 accRewardPerShare = pool.accRewardPerShare;</span>
+<span class="cstat-no" title="statement not covered" >        if (pool.totalLpSupply &gt; 0) {</span>
+            accRewardPerShare += ((block.timestamp - pool.lastRewardTime) * REWARD_PER_SECOND * pool.allocPoint) / pool.totalLpSupply;
+        }
+        
+<span class="cstat-no" title="statement not covered" >        return (farm.lpTokenAmount * accRewardPerShare / 1e18) - farm.rewardDebt;</span>
+    }
+    
+<span class="fstat-no" title="function not covered" >    function getFarm(uint256 farmId) external view returns (Farm memory) {</span>
+<span class="cstat-no" title="statement not covered" >        return farms[farmId];</span>
+    }
+    
+<span class="fstat-no" title="function not covered" >    function getPendingReward(uint256 farmId, address user) external view returns (uint256) {</span>
+<span class="cstat-no" title="statement not covered" >        return calculatePendingReward(farmId, user);</span>
+    }
+    
+<span class="fstat-no" title="function not covered" >    function getPoolInfo(uint256 poolId) external view returns (PoolInfo memory) {</span>
+<span class="cstat-no" title="statement not covered" >        return poolInfo[poolId];</span>
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Feb 10 2026 21:19:59 GMT+0530 (India Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

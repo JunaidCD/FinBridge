@@ -42,7 +42,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\node_modules\\@openzeppelin\\contracts\\security\\ReentrancyGuard.sol": {
-      "lastModificationDate": 1754328367265,
+      "lastModificationDate": 1770743288559,
       "contentHash": "1535f8c0c68463f8c1b5239f7584e71f",
       "sourceName": "@openzeppelin/contracts/security/ReentrancyGuard.sol",
       "solcConfig": {
@@ -78,7 +78,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\node_modules\\@openzeppelin\\contracts\\access\\Ownable.sol": {
-      "lastModificationDate": 1754328367244,
+      "lastModificationDate": 1770743288502,
       "contentHash": "5a20b2cad87ddb61c7a3a6af21289e28",
       "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
@@ -116,7 +116,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\node_modules\\@openzeppelin\\contracts\\security\\Pausable.sol": {
-      "lastModificationDate": 1754328367249,
+      "lastModificationDate": 1770743288552,
       "contentHash": "25c8108f36fdd472bc78d4c4af240c11",
       "sourceName": "@openzeppelin/contracts/security/Pausable.sol",
       "solcConfig": {
@@ -154,7 +154,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
-      "lastModificationDate": 1754328366750,
+      "lastModificationDate": 1770743288560,
       "contentHash": "f07feb4a44b1a4872370da5aa70e8e46",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -190,7 +190,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\LoanMarketplace.sol": {
-      "lastModificationDate": 1770623295359,
+      "lastModificationDate": 1770743288485,
       "contentHash": "8285d12ca87d8e2f21f63c9caefef80c",
       "sourceName": "contracts/LoanMarketplace.sol",
       "solcConfig": {
@@ -230,7 +230,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeAnalytics.sol": {
-      "lastModificationDate": 1770652022488,
+      "lastModificationDate": 1770743288477,
       "contentHash": "b2f65b03dec0abea21772334b86d2779",
       "sourceName": "contracts/FinBridgeAnalytics.sol",
       "solcConfig": {
@@ -269,8 +269,8 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeYieldFarming.sol": {
-      "lastModificationDate": 1770652176740,
-      "contentHash": "dbb166fe76b86a94c5b9fa2487d73e47",
+      "lastModificationDate": 1770743946233,
+      "contentHash": "a416782cd4149bf5f8bb8e6aa86f06ea",
       "sourceName": "contracts/FinBridgeYieldFarming.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -308,7 +308,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeStaking.sol": {
-      "lastModificationDate": 1770652153045,
+      "lastModificationDate": 1770743288485,
       "contentHash": "72de8ef99ed58429b85d9aabd4deec70",
       "sourceName": "contracts/FinBridgeStaking.sol",
       "solcConfig": {
@@ -347,7 +347,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeRewards.sol": {
-      "lastModificationDate": 1770652107407,
+      "lastModificationDate": 1770743288485,
       "contentHash": "6df99baf0dc15ec07b6f7c0e861f8bbf",
       "sourceName": "contracts/FinBridgeRewards.sol",
       "solcConfig": {
@@ -426,7 +426,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeInsurance.sol": {
-      "lastModificationDate": 1770651984814,
+      "lastModificationDate": 1770743288477,
       "contentHash": "bc4e81fdda1a9dd3359dedf1aa9e3917",
       "sourceName": "contracts/FinBridgeInsurance.sol",
       "solcConfig": {
@@ -465,7 +465,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeGovernance.sol": {
-      "lastModificationDate": 1770652130734,
+      "lastModificationDate": 1770743288477,
       "contentHash": "d27123b109e6a5c56230a4103e37584f",
       "sourceName": "contracts/FinBridgeGovernance.sol",
       "solcConfig": {
@@ -504,7 +504,7 @@
       ]
     },
     "C:\\Users\\ASUS\\OneDrive\\Desktop\\FinBridge\\backend\\contracts\\FinBridgeExtensions.sol": {
-      "lastModificationDate": 1770651960105,
+      "lastModificationDate": 1770743288477,
       "contentHash": "4d064b5abaf7adf6dee7016e4c65466b",
       "sourceName": "contracts/FinBridgeExtensions.sol",
       "solcConfig": {

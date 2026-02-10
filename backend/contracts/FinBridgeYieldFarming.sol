@@ -81,7 +81,6 @@ contract FinBridgeYieldFarming is ReentrancyGuard, Ownable {
         require(farms[farmId].farmer == msg.sender, "Not your farm");
         
         Farm storage farm = farms[farmId];
-        PoolInfo storage pool = poolInfo[farmId];
         
         uint256 pendingReward = calculatePendingReward(farmId, msg.sender);
         
@@ -96,10 +95,9 @@ contract FinBridgeYieldFarming is ReentrancyGuard, Ownable {
         }
     }
     
-    function calculatePendingReward(uint256 farmId, address user) internal view returns (uint256) {
+    function calculatePendingReward(uint256 farmId, address /*user*/) internal view returns (uint256) {
         if (!farms[farmId].isActive) return 0;
         
-        Farm storage farm = farms[farmId];
         PoolInfo storage pool = poolInfo[farmId];
         
         uint256 accRewardPerShare = pool.accRewardPerShare;
@@ -107,7 +105,7 @@ contract FinBridgeYieldFarming is ReentrancyGuard, Ownable {
             accRewardPerShare += ((block.timestamp - pool.lastRewardTime) * REWARD_PER_SECOND * pool.allocPoint) / pool.totalLpSupply;
         }
         
-        return (farm.lpTokenAmount * accRewardPerShare / 1e18) - farm.rewardDebt;
+        return (farms[farmId].lpTokenAmount * accRewardPerShare / 1e18) - farms[farmId].rewardDebt;
     }
     
     function getFarm(uint256 farmId) external view returns (Farm memory) {
