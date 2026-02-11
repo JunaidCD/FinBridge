@@ -486,10 +486,10 @@ contract FinBridgeNFTCollateral is ReentrancyGuard, Ownable, Pausable {
      * @dev ERC721 receiver function
      */
     function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
+        address,
+        address,
+        uint256,
+        bytes calldata
     ) external pure returns (bytes4) {
         return this.onERC721Received.selector;
     }
@@ -498,11 +498,11 @@ contract FinBridgeNFTCollateral is ReentrancyGuard, Ownable, Pausable {
      * @dev ERC1155 receiver function
      */
     function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
     ) external pure returns (bytes4) {
         return this.onERC1155Received.selector;
     }
@@ -511,11 +511,11 @@ contract FinBridgeNFTCollateral is ReentrancyGuard, Ownable, Pausable {
      * @dev ERC1155 batch receiver function
      */
     function onERC1155BatchReceived(
-        address operator,
-        address from,
-        uint256[] calldata ids,
-        uint256[] calldata values,
-        bytes calldata data
+        address,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
     ) external pure returns (bytes4) {
         return this.onERC1155BatchReceived.selector;
     }
