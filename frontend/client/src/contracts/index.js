@@ -200,8 +200,8 @@ export const contractUtils = {
         id: typeof loan.id === 'bigint' ? loan.id.toString() : loan.id.toString(),
         borrower: loan.borrower,
         amount: ethers.formatEther(loan.amount),
-        interestRate: typeof loan.interestRate === 'bigint' ? loan.interestRate.toString() : loan.interestRate.toString(),
-        duration: typeof loan.duration === 'bigint' ? loan.duration.toString() : loan.duration.toString(),
+        interestRate: (Number(loan.interestRate) / 100).toFixed(2), // Convert basis points to percentage
+        duration: Math.floor(Number(loan.duration) / 86400).toString(), // Convert seconds to days
         timestamp: new Date(Number(loan.timestamp) * 1000).toISOString(),
         deadline: new Date(Number(loan.deadline) * 1000).toISOString(),
         isActive: loan.isActive,
@@ -367,8 +367,8 @@ export const setupEventListeners = (contract, callbacks) => {
         loanId: loanId.toString(),
         borrower,
         amount: ethers.formatEther(amount),
-        interestRate: interestRate.toString(),
-        duration: duration.toString()
+        interestRate: (Number(interestRate) / 100).toFixed(2), // Convert basis points to percentage
+        duration: Math.floor(Number(duration) / 86400).toString(), // Convert seconds to days
       });
     });
     listeners.loanRequestCreated = true;
@@ -438,7 +438,7 @@ export const removeEventListeners = (contract, listeners) => {
 // Utility functions
 export const formatLoanData = (loan) => {
   const timeAgo = getTimeAgo(new Date(loan.timestamp));
-  const expectedReturn = (parseFloat(loan.amount) * (1 + parseFloat(loan.interestRate) / 100)).toFixed(3);
+  const expectedReturn = (parseFloat(loan.amount) * (1 + parseFloat(loan.interestRate) / 10000)).toFixed(3);
   
   return {
     ...loan,

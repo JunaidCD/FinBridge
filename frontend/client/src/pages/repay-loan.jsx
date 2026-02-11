@@ -27,6 +27,7 @@ export default function RepayLoan() {
   const calculateDueAmount = (loan) => {
     const principal = parseFloat(loan.amount || 0);
     const interestRate = parseFloat(loan.interestRate || 0);
+    // interestRate is already in percentage (e.g., 5.2 for 5.2%), so divide by 100
     return (principal * (1 + interestRate / 100)).toFixed(4);
   };
 
