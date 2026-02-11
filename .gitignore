@@ -4,3 +4,8 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+backend/coverage/
+backend/artifacts/
+frontend/node_modules/
+**/*.html
+!frontend/client/index.html
