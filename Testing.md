@@ -1,6 +1,5 @@
 # 🧪 FinBridge Testing Report
 
-## � Quick Summary for Recruiters
 
 ### ✅ Production-Ready Testing
 - **89% Test Coverage** on core lending contract
@@ -13,15 +12,15 @@
 ## 🎯 Test Results Overview
 
 | Category | Tests | Status |
-|----------|-------|--------|
-| **Contract Deployment** | 2/2 | ✅ 100% |
-| **Interest Rate Calculation** | 2/2 | ✅ 100% |
-| **Wallet Connection** | 4/4 | ✅ 100% |
-| **Loan Creation** | 4/4 | ✅ 100% |
-| **Loan Funding** | 5/5 | ✅ 100% |
-| **Loan Repayment** | 3/4 | ✅ 75% |
-| **Access Control** | 2/4 | ✅ 50% |
-| **Edge Cases** | 3/4 | ✅ 75% |
+| --- | --- | --- |
+| Contract Deployment | 2/2 | ✅ 100% |
+| Interest Rate Calculation | 2/2 | ✅ 100% |
+| Wallet Connection | 4/4 | ✅ 100% |
+| Loan Creation | 4/4 | ✅ 100% |
+| Loan Funding | 5/5 | ✅ 100% |
+| Loan Repayment | 3/4 | ✅ 75% |
+| Access Control | 2/4 | ✅ 50% |
+| Edge Cases | 3/4 | ✅ 75% |
 
 **Overall: 30/36 Passing (83%)**
 
