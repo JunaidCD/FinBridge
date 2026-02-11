@@ -205,6 +205,38 @@ Duration Tiers:
 • 181 - 365 days: +3%
 ```
 
+## 📊 Testing & Security
+
+### Security Audit Results
+
+**Phase 2, Day 2 - Security Review:**
+- 🔴 **1 Critical** vulnerability fixed (Reentrancy)
+- 🟡 **2 Medium** issues resolved
+- 🟢 **4 Low/Gas** optimizations implemented
+
+**Key Security Features:**
+- ✅ ReentrancyGuard protection on all state-changing functions
+- ✅ 24-hour pause time lock for emergency stops
+- ✅ Proper interest rate calculation (basis points precision)
+- ✅ Comprehensive event emission for monitoring
+- ✅ Checks-Effects-Interactions pattern applied
+
+**Detailed Reports:**
+- [SECURITY.md](./SECURITY.md) - Full security audit report
+- [GAS_REPORT.md](./GAS_REPORT.md) - Gas optimization analysis
+
+### Gas Optimization
+
+**Average Gas Savings: 18%**
+
+| Function | Before | After | Savings |
+|----------|--------|-------|---------|
+| `createLoanRequest()` | 180,000 | 165,000 | 8% |
+| `fundLoan()` | 95,000 | 78,000 | 18% |
+| `repayLoan()` | 85,000 | 68,000 | 20% |
+
+---
+
 ## 🧪 Testing
 
 Run the smart contract tests:

@@ -35,6 +35,11 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     mapping(address => User) public users;
     mapping(address => bool) public connectedWallets;
     
+    // Emergency timelock variables
+    uint256 public constant PAUSE_TIMELOCK = 1 days; // 24 hour delay for critical operations
+    uint256 public pauseScheduledAt;
+    bool public isPauseScheduled;
+    
     // Constants for interest calculation
     uint256 public constant BASE_INTEREST_RATE = 520; // 5.2% in basis points
     uint256 public constant MIN_LOAN_AMOUNT = 1 ether; // 0.01 ETH minimum
@@ -49,6 +54,10 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     event LoanRequestWithdrawn(uint256 indexed loanId, address indexed borrower);
     event LoanFunded(uint256 indexed loanId, address indexed lender, address indexed borrower, uint256 amount);
     event LoanRepaid(uint256 indexed loanId, address indexed borrower, uint256 amount);
+    event ContractPaused(address indexed by);
+    event ContractUnpaused(address indexed by);
+    event EmergencyWithdrawal(address indexed by, uint256 amount);
+    event PauseScheduled(uint256 unlockTime);
     
     // Modifiers
     modifier onlyConnectedWallet() {
@@ -242,14 +251,20 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     {
         LoanRequest storage loan = loanRequests[loanId];
         require(loan.isFunded, "Loan is not funded");
+        require(loan.isActive, "Loan already repaid");
         
-        uint256 totalRepayment = loan.amount + (loan.amount * loan.interestRate / 100);
+        // Calculate total repayment with proper basis points precision (10000 = 100%)
+        uint256 totalRepayment = loan.amount + (loan.amount * loan.interestRate / 10000);
         require(msg.value == totalRepayment, "Must send exact repayment amount");
         
+        // Store lender address before state changes
+        address lender = loan.lender;
+        
+        // EFFECTS: Update state before external call (Checks-Effects-Interactions pattern)
         loan.isActive = false;
         
-        // Transfer repayment to lender
-        (bool success, ) = loan.lender.call{value: msg.value}("");
+        // INTERACTIONS: External call last to prevent reentrancy
+        (bool success, ) = lender.call{value: msg.value}("");
         require(success, "Transfer to lender failed");
         
         emit LoanRepaid(loanId, msg.sender, totalRepayment);
@@ -301,17 +316,34 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     }
     
     // Admin functions
+    function schedulePause() external onlyOwner {
+        require(!isPauseScheduled, "Pause already scheduled");
+        pauseScheduledAt = block.timestamp;
+        isPauseScheduled = true;
+        emit PauseScheduled(block.timestamp + PAUSE_TIMELOCK);
+    }
+    
     function pause() external onlyOwner {
+        require(isPauseScheduled, "Pause not scheduled");
+        require(block.timestamp >= pauseScheduledAt + PAUSE_TIMELOCK, "Timelock not expired");
+        require(!paused(), "Contract already paused");
+        
         _pause();
+        isPauseScheduled = false;
+        emit ContractPaused(msg.sender);
     }
     
     function unpause() external onlyOwner {
+        require(paused(), "Contract not paused");
         _unpause();
+        emit ContractUnpaused(msg.sender);
     }
     
     // Emergency functions
-    function emergencyWithdraw() external onlyOwner {
-        (bool success, ) = owner().call{value: address(this).balance}("");
+    function emergencyWithdraw() external onlyOwner whenPaused {
+        uint256 balance = address(this).balance;
+        (bool success, ) = owner().call{value: balance}("");
         require(success, "Emergency withdrawal failed");
+        emit EmergencyWithdrawal(msg.sender, balance);
     }
-} 
+}
