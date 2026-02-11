@@ -9,7 +9,7 @@ import { useWeb3 } from '../context/web3-context';
 import { useToast } from '../hooks/use-toast';
 
 export default function LoanRequestForm({ onSubmit }) {
-  const { createLoanRequest, isWalletConnectedToContract, connectWalletToContract } = useLoan();
+  const { createLoanRequest, isWalletConnectedToContract, connectWalletToContract, contract } = useLoan();
   const { account } = useWeb3();
   const { toast } = useToast();
   
@@ -95,6 +95,15 @@ export default function LoanRequestForm({ onSubmit }) {
     }
 
     if (!isWalletConnected) {
+      if (!contract) {
+        toast({
+          title: "Contract Not Ready",
+          description: "Please wait for the smart contract to initialize or refresh the page.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       try {
         await connectWalletToContract();
         setIsWalletConnected(true);
@@ -226,7 +235,17 @@ export default function LoanRequestForm({ onSubmit }) {
               </div>
             </div>
             <Button
-              onClick={connectWalletToContract}
+              onClick={() => {
+                if (!contract) {
+                  toast({
+                    title: "Contract Not Ready",
+                    description: "Please wait for the smart contract to initialize or refresh the page.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                connectWalletToContract();
+              }}
               className="bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-400 border border-yellow-400/30"
             >
               <i className="fas fa-link mr-2"></i>

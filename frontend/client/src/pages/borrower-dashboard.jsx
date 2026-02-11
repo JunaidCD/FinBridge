@@ -41,7 +41,7 @@ export default function BorrowerDashboard() {
         totalBorrowed: totalBorrowed.toFixed(2),
         activeLoans,
         totalRepaid: totalRepaid.toFixed(2),
-        creditScore: Math.floor(Math.random() * 200) + 600 // Mock credit score for now
+        creditScore: 750
       });
     } else {
       setStats({
@@ -52,6 +52,14 @@ export default function BorrowerDashboard() {
       });
     }
   }, [userLoans]);
+
+  // Fetch user loans when account connects
+  useEffect(() => {
+    if (account) {
+      console.log('Account connected, fetching user loans...');
+      fetchUserLoans();
+    }
+  }, [account, fetchUserLoans]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {

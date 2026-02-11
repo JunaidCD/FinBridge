@@ -462,6 +462,11 @@ export function LoanProvider({ children }) {
   // Connect wallet to contract
   const connectWalletToContract = async () => {
     if (!contract) {
+      toast({
+        title: "Contract Error",
+        description: "Smart contract not initialized. Please check your connection and refresh the page.",
+        variant: "destructive",
+      });
       throw new Error('Contract not initialized');
     }
 
