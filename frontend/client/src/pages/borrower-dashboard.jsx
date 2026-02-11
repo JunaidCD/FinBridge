@@ -7,7 +7,7 @@ import { useLoan } from '../context/loan-context';
 import { useWeb3 } from '../context/web3-context';
 
 export default function BorrowerDashboard() {
-  const { userLoans, createLoanRequest, isLoading } = useLoan();
+  const { userLoans, createLoanRequest, isLoading, fetchUserLoans } = useLoan();
   const { account } = useWeb3();
   
   const [statusFilter, setStatusFilter] = useState('all');
@@ -315,6 +315,17 @@ export default function BorrowerDashboard() {
             My Loan Portfolio
           </h2>
           <div className="flex items-center space-x-4">
+            {/* Refresh Button */}
+            <button
+              onClick={() => fetchUserLoans()}
+              disabled={isLoading}
+              className="bg-slate-800/90 hover:bg-slate-700/90 border-2 border-slate-700/80 hover:border-primary/60 rounded-xl px-4 py-2.5 text-sm font-medium text-white hover:text-primary transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 group-hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center min-w-[120px] justify-center backdrop-blur-sm"
+              title="Refresh portfolio"
+            >
+              <i className={`fas fa-sync-alt mr-2 ${isLoading ? 'animate-spin' : 'group-hover:animate-bounce'}`}></i>
+              <span>Refresh</span>
+            </button>
+            
             {/* Advanced Status Filter Dropdown */}
             <div className="relative" ref={statusDropdownRef}>
               <div className="group">

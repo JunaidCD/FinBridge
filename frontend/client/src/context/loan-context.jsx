@@ -92,6 +92,7 @@ export function LoanProvider({ children }) {
           setTimeout(() => {
             console.log('Refreshing loan requests after event...');
             fetchActiveLoanRequests();
+            fetchUserLoans(); // 🎯 ADD THIS: Refresh user portfolio
           }, 1000);
         },
         onLoanFunded: (fundData) => {
@@ -195,14 +196,26 @@ export function LoanProvider({ children }) {
 
   // Fetch user's loan requests
   const fetchUserLoans = async () => {
-    if (!contract || !account) return;
+    if (!contract || !account) {
+      console.log('❌ Cannot fetch user loans - contract or account missing');
+      return;
+    }
     
     try {
+      console.log('🔄 Fetching user loans...');
+      console.log('👤 User account:', account);
+      console.log('📋 Contract address:', contract.target || contract.address);
+      
       const loans = await contractUtils.getUserLoanRequests(contract, account);
       const formattedLoans = loans.map(formatLoanData);
+      
+      console.log('📊 Raw loans from contract:', loans);
+      console.log('🎯 Formatted loans:', formattedLoans);
+      console.log('📈 Setting userLoans state with', formattedLoans.length, 'loans');
+      
       setUserLoans(formattedLoans);
     } catch (error) {
-      console.error('Error fetching user loans:', error);
+      console.error('❌ Error fetching user loans:', error);
     }
   };
 
