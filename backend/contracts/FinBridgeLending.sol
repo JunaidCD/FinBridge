@@ -42,7 +42,7 @@ contract FinBridgeLending is ReentrancyGuard, Pausable, Ownable {
     
     // Constants for interest calculation
     uint256 public constant BASE_INTEREST_RATE = 520; // 5.2% in basis points
-    uint256 public constant MIN_LOAN_AMOUNT = 1 ether; // 0.01 ETH minimum
+    uint256 public constant MIN_LOAN_AMOUNT = 1 wei; // 1 wei minimum (essentially no minimum)
     uint256 public constant MAX_LOAN_AMOUNT = 1000 ether; // 1000 ETH maximum
     uint256 public constant MIN_DURATION = 7 days; // 7 days minimum
     uint256 public constant MAX_DURATION = 365 days; // 365 days maximum

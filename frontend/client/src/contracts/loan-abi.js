@@ -659,5 +659,7 @@ export const LOAN_CONTRACT_ABI = [
   }
 ];
 
-// ✅ IMPORTANT: Replace with your deployed contract address after deployment
-export const LOAN_CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// IMPORTANT: Update this after deploying to Sepolia
+// Local Hardhat: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+// Sepolia: Replace with your deployed contract address
+export const LOAN_CONTRACT_ADDRESS = "0xF6A1EdfBe7C94b8851D91E61921ad76fb6a6c193".trim();

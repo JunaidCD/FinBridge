@@ -1,22 +1,27 @@
 import { ethers } from 'ethers';
 import { LOAN_CONTRACT_ABI, LOAN_CONTRACT_ADDRESS } from './loan-abi.js';
 
+// Re-export LOAN_CONTRACT_ADDRESS for other modules
+export { LOAN_CONTRACT_ADDRESS };
+
 // Contract initialization functions
 export const initializeContract = async (provider, signer) => {
   // In ethers v6, getSigner() returns a promise
   const resolvedSigner = await signer;
-  console.log('Initializing contract with address:', LOAN_CONTRACT_ADDRESS);
+  const contractAddress = LOAN_CONTRACT_ADDRESS.trim();
+  console.log('Initializing contract with address:', contractAddress);
   console.log('Provider:', provider);
   console.log('Signer:', resolvedSigner);
-  
-  const contract = new ethers.Contract(LOAN_CONTRACT_ADDRESS, LOAN_CONTRACT_ABI, resolvedSigner);
+
+  const contract = new ethers.Contract(contractAddress, LOAN_CONTRACT_ABI, resolvedSigner);
   console.log('Contract created:', contract);
   return contract;
 };
 
 export const getLoanContract = (provider) => {
-  console.log('Creating read-only contract with address:', LOAN_CONTRACT_ADDRESS);
-  return new ethers.Contract(LOAN_CONTRACT_ADDRESS, LOAN_CONTRACT_ABI, provider);
+  const contractAddress = LOAN_CONTRACT_ADDRESS.trim();
+  console.log('Creating read-only contract with address:', contractAddress);
+  return new ethers.Contract(contractAddress, LOAN_CONTRACT_ABI, provider);
 };
 
 // Check if contract is deployed
@@ -24,12 +29,21 @@ export const checkContractDeployment = async (provider) => {
   try {
     const contract = getLoanContract(provider);
     console.log('Checking contract deployment...');
-    // Try to call a simple view function
-    const nextLoanId = await contract.nextLoanId();
-    console.log('Contract is deployed! Next loan ID:', nextLoanId.toString());
-    return true;
+
+    // For Sepolia, just check if contract exists (bypass deployment check)
+    const contractAddress = LOAN_CONTRACT_ADDRESS.trim();
+    const code = await provider.getCode(contractAddress);
+    const isDeployed = code !== '0x';
+
+    if (isDeployed) {
+      console.log('✅ Contract is deployed at:', contractAddress);
+      return true;
+    } else {
+      console.log('❌ Contract not found at:', contractAddress);
+      return false;
+    }
   } catch (error) {
-    console.error('Contract is not deployed or not accessible:', error);
+    console.error('Contract deployment check failed:', error);
     return false;
   }
 };
@@ -74,25 +88,25 @@ export const contractUtils = {
   async createLoanRequest(contract, amount, duration) {
     try {
       console.log('Creating loan request:', amount, 'ETH for', duration, 'days');
-      
+
       // Convert amount to wei
       const amountInWei = ethers.parseEther(amount.toString());
-      
+
       // Convert duration from days to seconds (contract expects seconds)
       const durationInSeconds = parseInt(duration) * 24 * 60 * 60; // days * 24 hours * 60 minutes * 60 seconds
-      
+
       console.log('Calling contract.createLoanRequest...');
       const tx = await contract.createLoanRequest(
         amountInWei,
         durationInSeconds
       );
       console.log('Transaction sent:', tx.hash);
-      
+
       console.log('Waiting for transaction confirmation...');
       const receipt = await tx.wait();
       console.log('Transaction confirmed:', receipt.hash);
       console.log('Transaction logs:', receipt.logs.length);
-      
+
       // Find the LoanRequestCreated event
       const event = receipt.logs.find(log => {
         try {
@@ -103,7 +117,7 @@ export const contractUtils = {
           return false;
         }
       });
-      
+
       if (event) {
         const parsed = contract.interface.parseLog(event);
         console.log('LoanRequestCreated event found:', parsed.args);
@@ -118,7 +132,7 @@ export const contractUtils = {
       } else {
         console.log('LoanRequestCreated event not found in transaction logs');
       }
-      
+
       return { transactionHash: tx.hash };
     } catch (error) {
       console.error('Error creating loan request:', error);
@@ -132,10 +146,10 @@ export const contractUtils = {
     try {
       // Convert amount to wei (amount should be a string or number representing ETH)
       const amountInWei = ethers.parseEther(amount.toString());
-      
+
       const tx = await contract.fundLoan(loanId, { value: amountInWei });
       await tx.wait();
-      
+
       return { transactionHash: tx.hash };
     } catch (error) {
       console.error('Error funding loan:', error);
@@ -148,7 +162,7 @@ export const contractUtils = {
     try {
       const tx = await contract.withdrawLoanRequest(loanId);
       const receipt = await tx.wait();
-      
+
       // Find the LoanRequestWithdrawn event
       const event = receipt.logs.find(log => {
         try {
@@ -158,7 +172,7 @@ export const contractUtils = {
           return false;
         }
       });
-      
+
       if (event) {
         const parsed = contract.interface.parseLog(event);
         return {
@@ -167,23 +181,25 @@ export const contractUtils = {
           transactionHash: tx.hash
         };
       }
-      
+
       return { transactionHash: tx.hash };
     } catch (error) {
       console.error('Error withdrawing loan request:', error);
       throw error;
     }
   },
-
   // Repay a loan
   async repayLoan(contract, loanId, amount) {
     try {
-      // Convert amount to wei (amount should be a string or number representing ETH)
-      const amountInWei = ethers.parseEther(amount.toString());
-      
-      const tx = await contract.repayLoan(loanId, { value: amountInWei });
+      // Read raw values from contract and calculate repayment in wei to avoid float precision issues.
+      const loan = await contract.getLoanRequest(loanId.toString());
+      const principalWei = loan.amount;
+      const interestBps = loan.interestRate;
+      const totalRepaymentWei = principalWei + (principalWei * interestBps / 10000n);
+
+      const tx = await contract.repayLoan(loanId, { value: totalRepaymentWei });
       await tx.wait();
-      
+
       return { transactionHash: tx.hash };
     } catch (error) {
       console.error('Error repaying loan:', error);
@@ -195,12 +211,19 @@ export const contractUtils = {
   async getLoanRequest(contract, loanId) {
     try {
       const loan = await contract.getLoanRequest(loanId);
-      
+      const principalWei = loan.amount;
+      const interestBps = loan.interestRate;
+      const totalRepaymentWei = principalWei + (principalWei * interestBps / 10000n);
+
       return {
         id: typeof loan.id === 'bigint' ? loan.id.toString() : loan.id.toString(),
         borrower: loan.borrower,
-        amount: ethers.formatEther(loan.amount),
-        interestRate: (Number(loan.interestRate) / 100).toFixed(2), // Convert basis points to percentage
+        amountWei: principalWei.toString(),
+        amount: ethers.formatEther(principalWei),
+        interestRateBps: interestBps.toString(),
+        interestRate: (Number(interestBps) / 100).toFixed(2),
+        dueAmountWei: totalRepaymentWei.toString(),
+        dueAmount: ethers.formatEther(totalRepaymentWei),
         duration: Math.floor(Number(loan.duration) / 86400).toString(), // Convert seconds to days
         timestamp: new Date(Number(loan.timestamp) * 1000).toISOString(),
         deadline: new Date(Number(loan.deadline) * 1000).toISOString(),
@@ -219,24 +242,24 @@ export const contractUtils = {
   async getActiveLoanRequests(contract) {
     try {
       console.log('Calling getActiveLoanRequests on contract:', contract.target || contract.address);
-      
+
       // First check if the contract method exists
       if (typeof contract.getActiveLoanRequests !== 'function') {
         console.error('getActiveLoanRequests method not found on contract');
         return [];
       }
-      
+
       const loanIds = await contract.getActiveLoanRequests();
       console.log('Received loan IDs:', loanIds);
       console.log('Loan IDs type:', typeof loanIds, 'Length:', loanIds.length);
-      
+
       if (!loanIds || loanIds.length === 0) {
         console.log('No loan IDs returned from contract');
         return [];
       }
-      
+
       const loans = [];
-      
+
       for (let i = 0; i < loanIds.length; i++) {
         const loanId = loanIds[i];
         try {
@@ -245,7 +268,7 @@ export const contractUtils = {
           console.log(`Fetching loan details for ID ${i + 1}/${loanIds.length}:`, loanIdStr);
           const loan = await this.getLoanRequest(contract, loanIdStr);
           console.log('Loan details:', loan);
-          
+
           // Only add active, unfunded loans to the marketplace
           if (loan.isActive && !loan.isFunded) {
             loans.push(loan);
@@ -260,7 +283,7 @@ export const contractUtils = {
           console.error(`Error getting loan ${loanId}:`, error);
         }
       }
-      
+
       console.log('Total active, unfunded loans found:', loans.length);
       return loans;
     } catch (error) {
@@ -276,13 +299,13 @@ export const contractUtils = {
     try {
       console.log('🔍 Fetching user loans for address:', userAddress);
       console.log('📋 Contract target:', contract.target || contract.address);
-      
+
       const loanIds = await contract.getUserLoanRequests(userAddress);
       console.log('📝 Received loan IDs:', loanIds);
       console.log('📊 Loan IDs type:', typeof loanIds, 'Length:', loanIds?.length);
-      
+
       const loans = [];
-      
+
       for (const loanId of loanIds) {
         try {
           console.log(`🔎 Fetching loan details for ID ${loanId}...`);
@@ -293,7 +316,7 @@ export const contractUtils = {
           console.error(`❌ Error getting user loan ${loanId}:`, error);
         }
       }
-      
+
       console.log('🎯 Final user loans array:', loans);
       return loans;
     } catch (error) {
@@ -307,7 +330,7 @@ export const contractUtils = {
     try {
       const loanIds = await contract.getUserFundedLoans(userAddress);
       const loans = [];
-      
+
       for (const loanId of loanIds) {
         try {
           const loan = await this.getLoanRequest(contract, loanId.toString());
@@ -316,7 +339,7 @@ export const contractUtils = {
           console.error(`Error getting funded loan ${loanId}:`, error);
         }
       }
-      
+
       return loans;
     } catch (error) {
       console.error('Error getting user funded loans:', error);
@@ -328,7 +351,7 @@ export const contractUtils = {
   async getUserStats(contract, userAddress) {
     try {
       const stats = await contract.getUserStats(userAddress);
-      
+
       return {
         totalBorrowed: ethers.formatEther(stats.totalBorrowed),
         totalLent: ethers.formatEther(stats.totalLent)
@@ -343,7 +366,7 @@ export const contractUtils = {
 // Event listeners for contract events
 export const setupEventListeners = (contract, callbacks) => {
   const listeners = {};
-  
+
   // Wallet connected event
   if (callbacks.onWalletConnected) {
     contract.on('WalletConnected', (user) => {
@@ -351,7 +374,7 @@ export const setupEventListeners = (contract, callbacks) => {
     });
     listeners.walletConnected = true;
   }
-  
+
   // Wallet disconnected event
   if (callbacks.onWalletDisconnected) {
     contract.on('WalletDisconnected', (user) => {
@@ -359,7 +382,7 @@ export const setupEventListeners = (contract, callbacks) => {
     });
     listeners.walletDisconnected = true;
   }
-  
+
   // Loan request created event
   if (callbacks.onLoanRequestCreated) {
     contract.on('LoanRequestCreated', (loanId, borrower, amount, interestRate, duration) => {
@@ -373,7 +396,7 @@ export const setupEventListeners = (contract, callbacks) => {
     });
     listeners.loanRequestCreated = true;
   }
-  
+
   // Loan request withdrawn event
   if (callbacks.onLoanRequestWithdrawn) {
     contract.on('LoanRequestWithdrawn', (loanId, borrower) => {
@@ -384,7 +407,7 @@ export const setupEventListeners = (contract, callbacks) => {
     });
     listeners.loanRequestWithdrawn = true;
   }
-  
+
   // Loan funded event
   if (callbacks.onLoanFunded) {
     contract.on('LoanFunded', (loanId, lender, borrower, amount) => {
@@ -397,7 +420,7 @@ export const setupEventListeners = (contract, callbacks) => {
     });
     listeners.loanFunded = true;
   }
-  
+
   // Loan repaid event
   if (callbacks.onLoanRepaid) {
     contract.on('LoanRepaid', (loanId, borrower, amount) => {
@@ -409,7 +432,7 @@ export const setupEventListeners = (contract, callbacks) => {
     });
     listeners.loanRepaid = true;
   }
-  
+
   return listeners;
 };
 
@@ -438,12 +461,18 @@ export const removeEventListeners = (contract, listeners) => {
 // Utility functions
 export const formatLoanData = (loan) => {
   const timeAgo = getTimeAgo(new Date(loan.timestamp));
-  const expectedReturn = (parseFloat(loan.amount) * (1 + parseFloat(loan.interestRate) / 10000)).toFixed(3);
-  
+  const dueAmountWei = loan.dueAmountWei
+    ? BigInt(loan.dueAmountWei)
+    : BigInt(loan.amountWei || 0) + (BigInt(loan.amountWei || 0) * BigInt(loan.interestRateBps || 0) / 10000n);
+  const expectedReturn = ethers.formatEther(dueAmountWei);
+
   return {
     ...loan,
     timeAgo,
     expectedReturn: `${expectedReturn} ETH`,
+    dueAmountWei: dueAmountWei.toString(),
+    dueAmount: ethers.formatEther(dueAmountWei),
+    interestRate: Number.parseFloat(loan.interestRate).toFixed(2),
     creditScore: Math.floor(Math.random() * 200) + 600, // Mock credit score for now
     purpose: loan.purpose || 'General purpose loan'
   };
@@ -452,7 +481,7 @@ export const formatLoanData = (loan) => {
 const getTimeAgo = (date) => {
   const now = new Date();
   const diffInSeconds = Math.floor((now - date) / 1000);
-  
+
   if (diffInSeconds < 60) {
     return `${diffInSeconds} seconds ago`;
   } else if (diffInSeconds < 3600) {

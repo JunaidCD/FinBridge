@@ -12,7 +12,7 @@ import { useWeb3 } from '../context/web3-context';
 import { useToast } from '../hooks/use-toast';
 
 export default function LenderDashboard() {
-  const { loanRequests, fundedLoans, fundLoan, withdrawLoanRequest, isLoading, fetchActiveLoanRequests } = useLoan();
+  const { loanRequests, fundedLoans, fundLoan, withdrawLoanRequest, isLoading, fetchActiveLoanRequests, refreshAllData } = useLoan();
   const { account } = useWeb3();
   const { toast } = useToast();
   
@@ -28,90 +28,96 @@ export default function LenderDashboard() {
   const [filterSettings, setFilterSettings] = useState({
     creditScore: [600, 850],
     interestRate: [3, 15],
-    loanAmount: [0.1, 10],
-    duration: [7, 180],
+    loanAmount: [0.1, 100],
+    duration: [7, 365],
     newOnly: false,
-    highYieldOnly: false,
-    verifiedOnly: false,
-    trendingOnly: false,
-    loanPurpose: 'all'
+    highYield: false
   });
+  const [filteredLoanRequests, setFilteredLoanRequests] = useState([]);
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  const [activeFilterCount, setActiveFilterCount] = useState(0);
 
-  const handleFundLoan = async (requestId) => {
-    if (!account) {
-      toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your MetaMask wallet first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const loan = loanRequests.find(r => r.id === requestId);
-      if (loan) {
-        await fundLoan(requestId, loan.amount);
-        toast({
-          title: "Success!",
-          description: `Successfully funded ${loan.amount} ETH loan`,
-          variant: "default",
-        });
+  // Apply filters to loan requests
+  const applyFilters = () => {
+    let filtered = loanRequests.filter(request => {
+      // Credit score filter
+      if (request.creditScore < filterSettings.creditScore[0] || 
+          request.creditScore > filterSettings.creditScore[1]) {
+        return false;
       }
-    } catch (error) {
-      console.error('Error funding loan:', error);
-      // Error handling is done in the loan context
-    }
-  };
-
-  const handleWithdrawLoan = async (requestId) => {
-    console.log('handleWithdrawLoan called with ID:', requestId);
+      
+      // Interest rate filter
+      if (parseFloat(request.interestRate) < filterSettings.interestRate[0] || 
+          parseFloat(request.interestRate) > filterSettings.interestRate[1]) {
+        return false;
+      }
+      
+      // Loan amount filter
+      if (parseFloat(request.amount) < filterSettings.loanAmount[0] || 
+          parseFloat(request.amount) > filterSettings.loanAmount[1]) {
+        return false;
+      }
+      
+      // Duration filter
+      if (parseInt(request.duration) < filterSettings.duration[0] || 
+          parseInt(request.duration) > filterSettings.duration[1]) {
+        return false;
+      }
+      
+      // New only filter (last 24 hours)
+      if (filterSettings.newOnly) {
+        const requestTime = new Date(request.timestamp);
+        const now = new Date();
+        const hoursDiff = (now - requestTime) / (1000 * 60 * 60);
+        if (hoursDiff > 24) {
+          return false;
+        }
+      }
+      
+      // High yield filter (above average interest rate)
+      if (filterSettings.highYield && parseFloat(request.interestRate) < 8) {
+        return false;
+      }
+      
+      return true;
+    });
     
-    if (!account) {
-      toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your MetaMask wallet first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Store withdrawn request ID in localStorage for persistence
-      const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
-      withdrawnRequests.push(requestId);
-      localStorage.setItem('withdrawnLoanRequests', JSON.stringify(withdrawnRequests));
-      
-      // Immediately remove from both filtered and original state
-      setFilteredLoanRequests(prev => {
-        console.log('Removing from filtered requests, current count:', prev.length);
-        const newFiltered = prev.filter(request => request.id !== requestId);
-        console.log('New filtered count:', newFiltered.length);
-        return newFiltered;
-      });
-      
-      // Also call the context method for backend sync (if available)
-      try {
-        await withdrawLoanRequest(requestId);
-      } catch (contextError) {
-        console.log('Context withdrawal failed, using local only:', contextError);
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        case 'amount-high':
+          return parseFloat(b.amount) - parseFloat(a.amount);
+        case 'amount-low':
+          return parseFloat(a.amount) - parseFloat(b.amount);
+        case 'interest-high':
+          return parseFloat(b.interestRate) - parseFloat(a.interestRate);
+        case 'interest-low':
+          return parseFloat(a.interestRate) - parseFloat(b.interestRate);
+        default:
+          return 0;
       }
-      
-      toast({
-        title: "Success",
-        description: "Loan request withdrawn successfully!",
-        variant: "default",
-      });
-      
-    } catch (error) {
-      console.error('Error withdrawing loan:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to withdraw loan request",
-        variant: "destructive",
-      });
-    }
+    });
+    
+    setFilteredLoanRequests(filtered);
   };
 
+  // Reset filters
+  const resetFilters = () => {
+    setFilterSettings({
+      creditScore: [600, 850],
+      interestRate: [3, 15],
+      loanAmount: [0.1, 100],
+      duration: [7, 365],
+      newOnly: false,
+      highYield: false
+    });
+    setHasActiveFilters(false);
+    setActiveFilterCount(0);
+  };
+
+  // Handle filter changes
   const handleFilterChange = (key, value) => {
     setFilterSettings(prev => ({
       ...prev,
@@ -119,146 +125,63 @@ export default function LenderDashboard() {
     }));
   };
 
-  // Add this state to store filtered loan requests
-  const [filteredLoanRequests, setFilteredLoanRequests] = useState([]);
-  const [hasActiveFilters, setHasActiveFilters] = useState(false);
-  const [activeFilterCount, setActiveFilterCount] = useState(0);
-  
-  // Update the applyFilters function
-  const applyFilters = () => {
-    // Apply the filter settings to the loan requests
-    console.log('Applying filters:', filterSettings);
-    console.log('Current loan requests:', loanRequests);
-    
-    // Get withdrawn requests from localStorage
-    const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
-    
-    const filtered = loanRequests.filter(loan => {
-      // First filter out withdrawn requests
-      if (withdrawnRequests.includes(loan.id)) {
-        return false;
-      }
-      
-      // Check credit score range (mock data for now)
-      const creditScore = loan.creditScore || Math.floor(Math.random() * 200) + 600;
-      if (creditScore < filterSettings.creditScore[0] || 
-          creditScore > filterSettings.creditScore[1]) {
-        return false;
-      }
-      
-      // Check interest rate range
-      if (parseFloat(loan.interestRate) < filterSettings.interestRate[0] || 
-          parseFloat(loan.interestRate) > filterSettings.interestRate[1]) {
-        return false;
-      }
-      
-      // Check loan amount range
-      if (parseFloat(loan.amount) < filterSettings.loanAmount[0] || 
-          parseFloat(loan.amount) > filterSettings.loanAmount[1]) {
-        return false;
-      }
-      
-      // Check duration range
-      if (parseInt(loan.duration) < filterSettings.duration[0] || 
-          parseInt(loan.duration) > filterSettings.duration[1]) {
-        return false;
-      }
-      
-      // Check new only option
-      if (filterSettings.newOnly) {
-        // Assuming "new" means posted within last 24 hours
-        if (!loan.timeAgo.includes('hour') && !loan.timeAgo.includes('minute')) {
-          return false;
-        }
-      }
-      
-      // Check high yield option
-      if (filterSettings.highYieldOnly) {
-        // Assuming high yield means above 5%
-        if (parseFloat(loan.interestRate) < 5) {
-          return false;
-        }
-      }
-      
-      // Check verified borrowers only
-      if (filterSettings.verifiedOnly) {
-        // Assuming verified borrowers have higher credit scores
-        if (creditScore < 700) {
-          return false;
-        }
-      }
-      
-      // Check trending loans only
-      if (filterSettings.trendingOnly) {
-        // Assuming trending loans are recent and have high interest
-        if (!loan.timeAgo.includes('hour') && parseFloat(loan.interestRate) < 8) {
-          return false;
-        }
-      }
-      
-      // Check loan purpose
-      if (filterSettings.loanPurpose !== 'all' && !loan.purpose.toLowerCase().includes(filterSettings.loanPurpose)) {
-        return false;
-      }
-      
-      return true;
-    });
-    
-    setFilteredLoanRequests(filtered);
-    
-    // Check if any filters are active and count them
+  // Apply filters whenever dependencies change
+  useEffect(() => {
+    // Check if any filters are active
     let filterCount = 0;
     if (filterSettings.creditScore[0] !== 600 || filterSettings.creditScore[1] !== 850) filterCount++;
     if (filterSettings.interestRate[0] !== 3 || filterSettings.interestRate[1] !== 15) filterCount++;
-    if (filterSettings.loanAmount[0] !== 0.1 || filterSettings.loanAmount[1] !== 10) filterCount++;
-    if (filterSettings.duration[0] !== 7 || filterSettings.duration[1] !== 180) filterCount++;
+    if (filterSettings.loanAmount[0] !== 0.1 || filterSettings.loanAmount[1] !== 100) filterCount++;
+    if (filterSettings.duration[0] !== 7 || filterSettings.duration[1] !== 365) filterCount++;
     if (filterSettings.newOnly) filterCount++;
-    if (filterSettings.highYieldOnly) filterCount++;
-    if (filterSettings.verifiedOnly) filterCount++;
-    if (filterSettings.trendingOnly) filterCount++;
-    if (filterSettings.loanPurpose !== 'all') filterCount++;
+    if (filterSettings.highYield) filterCount++;
     
-    setHasActiveFilters(filterCount > 0);
     setActiveFilterCount(filterCount);
-    console.log('Filters applied. Active filters:', filterCount, 'Filtered results:', filtered.length);
-    setIsFilterDialogOpen(false);
-  };
-
-  const resetFilters = () => {
-    setFilterSettings({
-      creditScore: [600, 850],
-      interestRate: [3, 15],
-      loanAmount: [0.1, 10],
-      duration: [7, 180],
-      newOnly: false,
-      highYieldOnly: false,
-      verifiedOnly: false,
-      trendingOnly: false,
-      loanPurpose: 'all'
-    });
-    setHasActiveFilters(false);
-    setActiveFilterCount(0);
-  };
-
-  // Update filtered requests when loanRequests changes
-  useEffect(() => {
-    // Always filter out withdrawn requests, regardless of other filters
-    const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
-    const filteredByWithdrawal = loanRequests.filter(loan => !withdrawnRequests.includes(loan.id));
+    setHasActiveFilters(filterCount > 0);
     
-    if (hasActiveFilters) {
-      applyFilters();
-    } else {
-      setFilteredLoanRequests(filteredByWithdrawal);
-    }
-  }, [loanRequests, hasActiveFilters]);
+    applyFilters();
+  }, [filterSettings, loanRequests, sortBy]);
 
-  // Initialize filtered requests with withdrawn requests removed
+  // Update filtered loans when loan requests change
   useEffect(() => {
     const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
     const filteredByWithdrawal = loanRequests.filter(loan => !withdrawnRequests.includes(loan.id));
     setFilteredLoanRequests(filteredByWithdrawal);
   }, [loanRequests]);
+
+  // Handle fund loan
+  const handleFundLoan = async (loanId) => {
+    try {
+      const loan = loanRequests.find(req => req.id === loanId);
+      if (!loan) return;
+      
+      await fundLoan(loanId, loan.amount);
+    } catch (error) {
+      console.error('Error funding loan:', error);
+    }
+  };
+
+  // Handle withdraw loan
+  const handleWithdrawLoan = async (loanId) => {
+    try {
+      await withdrawLoanRequest(loanId);
+      
+      // Add to withdrawn requests list
+      const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
+      withdrawnRequests.push(loanId);
+      localStorage.setItem('withdrawnLoanRequests', JSON.stringify(withdrawnRequests));
+      
+      // Immediately remove from both filtered and original state
+      setFilteredLoanRequests(prev => {
+        console.log('Removing from filtered requests, current count:', prev.length);
+        const newFiltered = prev.filter(request => request.id !== loanId);
+        console.log('New filtered count:', newFiltered.length);
+        return newFiltered;
+      });
+    } catch (error) {
+      console.error('Error withdrawing loan:', error);
+    }
+  };
 
   // Update stats based on real data for connected MetaMask account
   useEffect(() => {
@@ -332,6 +255,14 @@ export default function LenderDashboard() {
                 <span className="text-sm text-green-400 font-medium">Market Active</span>
               </div>
             </div>
+            <Button
+              onClick={refreshAllData}
+              disabled={isLoading}
+              className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
+            >
+              <i className={`fas fa-sync-alt mr-2 ${isLoading ? 'animate-spin' : ''}`}></i>
+              Refresh
+            </Button>
             <Button className="button-advanced bg-gradient-to-r from-primary to-secondary px-4 py-2">
               <i className="fas fa-plus mr-2"></i>
               Auto-Lend
@@ -686,192 +617,198 @@ export default function LenderDashboard() {
           </div>
         </div>
         
-        {isLoading ? (
-          <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading funded loans...</p>
-          </div>
-        ) : fundedLoans.length === 0 ? (
-          /* Enhanced Empty State */
-          <div className="text-center py-16">
-            <div className="relative mb-8">
-              <div className="w-32 h-32 bg-gradient-to-br from-green-400/20 to-blue-400/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-slow">
-                <i className="fas fa-piggy-bank text-4xl text-green-400"></i>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-green-400/10 to-blue-400/10 rounded-full blur-xl"></div>
-            </div>
-            <h3 className="text-2xl font-bold mb-4 text-white">Start Your Lending Journey</h3>
-            <p className="text-muted-foreground mb-8 text-lg max-w-md mx-auto">
-              Fund your first loan to begin earning returns. Your lending history and portfolio performance will appear here.
-            </p>
-            <Button className="button-advanced bg-gradient-to-r from-green-400 to-blue-400 px-6 py-3">
-              <i className="fas fa-plus mr-2"></i>
-              Fund First Loan
-            </Button>
-          </div>
-        ) : (
-          /* Enhanced Funded Loans List */
-          <div className="space-y-6">
-            {fundedLoans.map((loan, index) => (
-              <div key={loan.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                <LoanCard loan={loan} type="funded" />
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Portfolio content would go here */}
+        <div className="text-center py-12">
+          <i className="fas fa-chart-line text-4xl text-muted-foreground mb-4"></i>
+          <p className="text-muted-foreground">Your funded loans will appear here</p>
+        </div>
       </div>
 
-      {/* Enhanced Filter Dialog */}
+      {/* Filter Dialog */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-[600px] bg-background border-border">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center">
-              <i className="fas fa-filter mr-3"></i>
+            <DialogTitle className="text-white flex items-center">
+              <i className="fas fa-filter text-primary mr-3"></i>
               Advanced Filter Options
             </DialogTitle>
-            <p className="text-muted-foreground mt-2">Customize your loan discovery experience</p>
           </DialogHeader>
           
-          <div className="py-6">
-            <Tabs defaultValue="criteria" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8">
-                <TabsTrigger value="criteria">Filter Criteria</TabsTrigger>
-                <TabsTrigger value="options">Options</TabsTrigger>
-                <TabsTrigger value="presets">Presets</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="criteria" className="space-y-6">
-                {/* Credit Score Filter */}
-                <div className="p-6 border rounded-lg">
-                  <div className="flex justify-between items-center mb-4">
-                    <label className="text-lg font-semibold">Credit Score Range</label>
-                    <span className="text-sm bg-primary/20 text-primary px-3 py-1 rounded-full">
-                      {filterSettings.creditScore[0]} - {filterSettings.creditScore[1]}
-                    </span>
+          <Tabs defaultValue="basics" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-background border border-border">
+              <TabsTrigger value="basics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Basics
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Advanced
+              </TabsTrigger>
+              <TabsTrigger value="sorting" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Sorting
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basics" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Credit Score Range</label>
+                  <div className="px-2">
+                    <Slider
+                      value={filterSettings.creditScore}
+                      onValueChange={(value) => handleFilterChange('creditScore', value)}
+                      max={850}
+                      min={300}
+                      step={50}
+                      className="w-full"
+                    />
                   </div>
-                  <Slider
-                    value={filterSettings.creditScore}
-                    min={300}
-                    max={850}
-                    step={10}
-                    onValueChange={(value) => handleFilterChange('creditScore', value)}
-                    className="my-6"
-                    minStepsBetweenThumbs={1}
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>{filterSettings.creditScore[0]}</span>
+                    <span>{filterSettings.creditScore[1]}</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Interest Rate Range (%)</label>
+                  <div className="px-2">
+                    <Slider
+                      value={filterSettings.interestRate}
+                      onValueChange={(value) => handleFilterChange('interestRate', value)}
+                      max={25}
+                      min={1}
+                      step={0.5}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>{filterSettings.interestRate[0]}%</span>
+                    <span>{filterSettings.interestRate[1]}%</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Loan Amount Range (ETH)</label>
+                  <div className="px-2">
+                    <Slider
+                      value={filterSettings.loanAmount}
+                      onValueChange={(value) => handleFilterChange('loanAmount', value)}
+                      max={100}
+                      min={0.1}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>{filterSettings.loanAmount[0]} ETH</span>
+                    <span>{filterSettings.loanAmount[1]} ETH</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Duration Range (Days)</label>
+                  <div className="px-2">
+                    <Slider
+                      value={filterSettings.duration}
+                      onValueChange={(value) => handleFilterChange('duration', value)}
+                      max={365}
+                      min={7}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>{filterSettings.duration[0]} days</span>
+                    <span>{filterSettings.duration[1]} days</span>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="advanced" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium">New Requests Only</label>
+                    <p className="text-xs text-muted-foreground">Show only requests from last 24 hours</p>
+                  </div>
+                  <Switch
+                    checked={filterSettings.newOnly}
+                    onCheckedChange={(checked) => handleFilterChange('newOnly', checked)}
                   />
                 </div>
                 
-                {/* Interest Rate Filter */}
-                <div className="p-6 border rounded-lg">
-                  <div className="flex justify-between items-center mb-4">
-                    <label className="text-lg font-semibold">Interest Rate Range</label>
-                    <span className="text-sm bg-green-400/20 text-green-400 px-3 py-1 rounded-full">
-                      {filterSettings.interestRate[0]}% - {filterSettings.interestRate[1]}%
-                    </span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium">High Yield Only</label>
+                    <p className="text-xs text-muted-foreground">Show only loans with 8%+ interest</p>
                   </div>
-                  <Slider
-                    value={filterSettings.interestRate}
-                    min={1}
-                    max={50}
-                    step={0.5}
-                    onValueChange={(value) => handleFilterChange('interestRate', value)}
-                    className="my-6"
-                    minStepsBetweenThumbs={1}
+                  <Switch
+                    checked={filterSettings.highYield}
+                    onCheckedChange={(checked) => handleFilterChange('highYield', checked)}
                   />
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="options" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-6 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-lg">New Requests Only</p>
-                        <p className="text-sm text-muted-foreground mt-1">Display only requests posted in the last 24 hours</p>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="sorting" className="space-y-6 mt-6">
+              <div className="space-y-4">
+                <label className="text-sm font-medium mb-2 block">Sort By</label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full bg-background border border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border border-border">
+                    <SelectItem value="newest">
+                      <div className="flex items-center">
+                        <i className="fas fa-clock text-primary mr-2"></i>
+                        Newest First
                       </div>
-                      <Switch
-                        checked={filterSettings.newOnly}
-                        onCheckedChange={(checked) => handleFilterChange('newOnly', checked)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="p-6 border rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-lg">High Yield Opportunities</p>
-                        <p className="text-sm text-muted-foreground mt-1">Show loans with above-average interest rates</p>
+                    </SelectItem>
+                    <SelectItem value="amount-high">
+                      <div className="flex items-center">
+                        <i className="fas fa-sort-amount-up text-green-400 mr-2"></i>
+                        Highest Amount
                       </div>
-                      <Switch
-                        checked={filterSettings.highYieldOnly}
-                        onCheckedChange={(checked) => handleFilterChange('highYieldOnly', checked)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="presets" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div 
-                    className="p-6 border rounded-lg cursor-pointer hover:border-primary"
-                    onClick={() => {
-                      setFilterSettings({
-                        creditScore: [700, 850],
-                        interestRate: [5, 12],
-                        loanAmount: [0.5, 5],
-                        duration: [30, 90],
-                        newOnly: false,
-                        highYieldOnly: true,
-                        verifiedOnly: true
-                      });
-                    }}
-                  >
-                    <h3 className="font-semibold text-lg">Conservative</h3>
-                    <p className="text-sm text-muted-foreground mt-1">Low risk, verified borrowers with good credit scores</p>
-                  </div>
-                  
-                  <div 
-                    className="p-6 border rounded-lg cursor-pointer hover:border-primary"
-                    onClick={() => {
-                      setFilterSettings({
-                        creditScore: [600, 800],
-                        interestRate: [8, 18],
-                        loanAmount: [1, 8],
-                        duration: [15, 60],
-                        newOnly: true,
-                        highYieldOnly: true,
-                        verifiedOnly: false
-                      });
-                    }}
-                  >
-                    <h3 className="font-semibold text-lg">High Yield</h3>
-                    <p className="text-sm text-muted-foreground mt-1">Maximum returns with higher risk tolerance</p>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+                    </SelectItem>
+                    <SelectItem value="amount-low">
+                      <div className="flex items-center">
+                        <i className="fas fa-sort-amount-down text-blue-400 mr-2"></i>
+                        Lowest Amount
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="interest-high">
+                      <div className="flex items-center">
+                        <i className="fas fa-percentage text-yellow-400 mr-2"></i>
+                        Highest Interest
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="interest-low">
+                      <div className="flex items-center">
+                        <i className="fas fa-percentage text-blue-400 mr-2"></i>
+                        Lowest Interest
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TabsContent>
+          </Tabs>
           
-          <DialogFooter className="flex justify-between mt-8">
-            <Button
-              variant="outline"
+          <DialogFooter className="flex gap-3">
+            <Button 
+              variant="outline" 
               onClick={resetFilters}
+              className="border-border hover:bg-background"
             >
-              Reset Filters
+              <i className="fas fa-times mr-2"></i>
+              Reset All
             </Button>
-            <div className="flex space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => setIsFilterDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={applyFilters}
-              >
-                Apply Filters
-              </Button>
-            </div>
+            <Button 
+              onClick={() => setIsFilterDialogOpen(false)}
+              className="button-advanced bg-gradient-to-r from-primary to-secondary"
+            >
+              <i className="fas fa-check mr-2"></i>
+              Apply Filters
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

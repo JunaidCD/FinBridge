@@ -7,7 +7,7 @@ import { useLoan } from '../context/loan-context';
 import { useWeb3 } from '../context/web3-context';
 
 export default function BorrowerDashboard() {
-  const { userLoans, createLoanRequest, isLoading, fetchUserLoans } = useLoan();
+  const { userLoans, createLoanRequest, isLoading, fetchUserLoans, refreshAllData } = useLoan();
   const { account } = useWeb3();
   
   const [statusFilter, setStatusFilter] = useState('all');
@@ -200,6 +200,14 @@ export default function BorrowerDashboard() {
                 <span className="text-sm text-green-400 font-medium">Online</span>
               </div>
             </div>
+            <Button
+              onClick={refreshAllData}
+              disabled={isLoading}
+              className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
+            >
+              <i className={`fas fa-sync-alt mr-2 ${isLoading ? 'animate-spin' : ''}`}></i>
+              Refresh
+            </Button>
           </div>
         </div>
         

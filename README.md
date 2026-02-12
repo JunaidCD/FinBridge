@@ -10,6 +10,7 @@
 [![Solidity](https://img.shields.io/badge/Solidity-%23363636.svg?style=flat&logo=solidity&logoColor=white)](https://soliditylang.org/)
 [![React](https://img.shields.io/badge/React-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
 [![Hardhat](https://img.shields.io/badge/Hardhat-FFF100?style=flat&logo=hardhat&logoColor=black)](https://hardhat.org/)
+[![Sepolia](https://img.shields.io/badge/Sepolia%20Testnet-Live-success?style=flat&logo=ethereum)](https://sepolia.etherscan.io)
 
 </div>
 
@@ -68,16 +69,15 @@ FinBridge is a revolutionary **decentralized peer-to-peer lending platform** bui
 
 ### Prerequisites
 
-Before running FinBridge locally, ensure you have:
+Before running FinBridge on Sepolia, ensure you have:
 
 - **Node.js** (v16 or higher)
 - **npm** or **yarn**
 - **MetaMask** browser extension
 - **Git**
+- **Sepolia ETH** (get from [faucet](https://sepoliafaucet.com))
 
 ### 📦 Installation & Setup
-
-Follow these steps to run FinBridge on your local machine:
 
 #### 1. Clone the Repository
 ```bash
@@ -85,43 +85,35 @@ git clone https://github.com/your-username/FinBridge.git
 cd FinBridge
 ```
 
-#### 2. Start the Blockchain Network
+#### 2. Deploy Smart Contracts to Sepolia
 ```bash
 cd backend
 npm install
-# Recommended: Install specific versions for compatibility
-npm install @nomicfoundation/hardhat-toolbox@^4.0.0
-npm install hardhat@^2.26.3
-npm install @openzeppelin/contracts@^4.9.6
-npx hardhat node
+npm run deploy:sepolia
 ```
-> This starts a local Ethereum network on `http://127.0.0.1:8545`
 
-#### 3. Deploy Smart Contracts
-Open a new terminal and run:
-```bash
-cd backend
-npx hardhat run scripts/deploy.js --network localhost
+#### 3. Configure Frontend Contract Address
+Edit `frontend/client/src/contracts/loan-abi.js`:
+```javascript
+export const LOAN_CONTRACT_ADDRESS = "0xa307518974eB04F6Cdb723e3a12eC7e194EE5Aa9";
 ```
-> Note the deployed contract address for frontend configuration
 
 #### 4. Start the Frontend
-Open another terminal:
 ```bash
 cd frontend/client
 npm install
 npm run dev
 ```
-> Frontend will be available at `http://localhost:5000`
+> Frontend will be available at `http://localhost:5001`
 
-#### 5. Configure MetaMask
-1. Add **Hardhat Local Network** to MetaMask:
-   - Network Name: `Hardhat Local`
-   - RPC URL: `http://127.0.0.1:8545`
-   - Chain ID: `31337`
-   - Currency Symbol: `ETH`
+#### 5. Configure MetaMask for Sepolia
+1. Add **Sepolia Testnet** to MetaMask:
+   - Network Name: `Sepolia Testnet`
+   - RPC URL: `https://rpc.sepolia.org`
+   - Chain ID: `11155111`
+   - Currency Symbol: `SepoliaETH`
 
-2. Import test accounts from Hardhat node output
+2. Import your wallet with Sepolia ETH
 
 ### 🎯 Usage
 
@@ -253,16 +245,80 @@ npm test
 
 ## 🚀 Deployment
 
-### Testnet Deployment
-```bash
-cd backend
-npx hardhat run scripts/deploy.js --network goerli
+### Sepolia Testnet Deployment (Recommended)
+
+FinBridge is configured for **Sepolia Testnet** deployment with automatic Etherscan verification.
+
+#### 1. Setup Environment Variables
+
+Create `.env` file in `backend/` folder:
+
+```env
+PRIVATE_KEY=your_metamask_private_key_here
+SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY
+ETHERSCAN_API_KEY=your_etherscan_api_key
 ```
 
-### Mainnet Deployment
+Get your API keys:
+- **Alchemy**: https://alchemy.com (for RPC)
+- **Etherscan**: https://etherscan.io/myapikey (for verification)
+- **Sepolia ETH**: https://sepoliafaucet.com (for gas fees)
+
+#### 2. Install Dependencies
+
 ```bash
 cd backend
-npx hardhat run scripts/deploy.js --network mainnet
+npm install
+```
+
+#### 3. Deploy to Sepolia
+
+```bash
+cd backend
+npm run deploy:sepolia
+```
+
+This will:
+- ✅ Deploy contract to Sepolia
+- ✅ Verify on Etherscan automatically
+- ✅ Output contract address and explorer link
+
+#### 4. Update Frontend Contract Address
+
+Edit `frontend/client/src/contracts/loan-abi.js`:
+
+```javascript
+export const LOAN_CONTRACT_ADDRESS = "your_deployed_contract_address";
+```
+
+#### 5. Deploy Frontend (Vercel/Netlify)
+
+**Vercel:**
+```bash
+cd frontend/client
+npm install -g vercel
+vercel
+```
+
+**Netlify:**
+```bash
+cd frontend/client
+npm run build
+# Drag 'dist' folder to Netlify
+```
+
+### Deployed Contract Info
+
+| Network | Chain ID | Contract Address | Explorer |
+|---------|----------|-------------------|----------|
+| Sepolia | 11155111 | `0xC9576B314CB8A4C9E41C082d0f02ae6E25019ab7` | [View on Etherscan](https://sepolia.etherscan.io/address/0xC9576B314CB8A4C9E41C082d0f02ae6E25019ab7) |
+
+### Local Deployment
+
+```bash
+cd backend
+npx hardhat node
+npx hardhat run scripts/deploy.js --network localhost
 ```
 
 ## 🤝 Contributing

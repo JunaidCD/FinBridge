@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
@@ -23,12 +23,9 @@ export default function RepayLoan() {
   // Filter user loans to show only funded and active loans (loans that need repayment)
   const outstandingLoans = userLoans.filter(loan => loan.isFunded && loan.isActive);
 
-  // Calculate due amount for each loan (principal + interest)
+  // Use due amount precomputed from exact wei math in contract utilities.
   const calculateDueAmount = (loan) => {
-    const principal = parseFloat(loan.amount || 0);
-    const interestRate = parseFloat(loan.interestRate || 0);
-    // interestRate is already in percentage (e.g., 5.2 for 5.2%), so divide by 100
-    return (principal * (1 + interestRate / 100)).toFixed(4);
+    return loan?.dueAmount || '0';
   };
 
   // Calculate summary stats
@@ -54,11 +51,11 @@ export default function RepayLoan() {
     if (!selectedLoan || !repaymentAmount) return;
 
     setIsProcessing(true);
-    
+
     try {
       // Use the actual repayLoan function from loan context
       await repayLoan(selectedLoan.id, repaymentAmount);
-      
+
       setIsModalOpen(false);
       setSelectedLoan(null);
       setRepaymentAmount('');
@@ -98,7 +95,7 @@ export default function RepayLoan() {
             </h1>
             <p className="text-muted-foreground text-lg">Manage your outstanding loans and make repayments</p>
           </div>
-          
+
         </div>
 
         {/* Summary Cards */}
@@ -114,7 +111,7 @@ export default function RepayLoan() {
               </div>
             </div>
           </div>
-          
+
           <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -126,7 +123,7 @@ export default function RepayLoan() {
               </div>
             </div>
           </div>
-          
+
           <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -138,7 +135,7 @@ export default function RepayLoan() {
               </div>
             </div>
           </div>
-          
+
           <div className="glass-card p-6 rounded-2xl hover:glow-border-animate transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
@@ -240,10 +237,10 @@ export default function RepayLoan() {
               Repay Loan #{selectedLoan?.id}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Enter the amount you want to repay for this loan.
+              This contract requires one exact repayment amount.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-4">
             {/* Loan Details */}
             <div className="glass-card p-4 rounded-xl">
@@ -275,14 +272,11 @@ export default function RepayLoan() {
               </label>
               <div className="relative">
                 <input
-                  type="number"
+                  type="text"
                   value={repaymentAmount}
-                  onChange={(e) => setRepaymentAmount(e.target.value)}
+                  readOnly
                   placeholder="0.0000"
                   className="w-full px-4 py-4 pr-20 bg-black/40 border-2 border-primary/50 rounded-xl text-white text-xl font-bold placeholder:text-muted-foreground/80 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-black/60 transition-all duration-300 hover:border-primary/70 shadow-lg backdrop-blur-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  min="0"
-                  max={selectedLoan ? calculateDueAmount(selectedLoan) : 0}
-                  step="0.0001"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                   <span className="text-primary font-bold text-sm">ETH</span>
@@ -298,7 +292,7 @@ export default function RepayLoan() {
                   onClick={() => setRepaymentAmount(selectedLoan ? calculateDueAmount(selectedLoan) : '0')}
                   className="text-xs text-secondary hover:text-primary transition-colors font-medium"
                 >
-                  Use Max
+                  Use Exact
                 </button>
               </div>
             </div>
@@ -355,4 +349,4 @@ export default function RepayLoan() {
       </Dialog>
     </div>
   );
-} 
+}
