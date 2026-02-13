@@ -52,7 +52,7 @@ FinBridge is a revolutionary **decentralized peer-to-peer lending platform** bui
 ### Blockchain
 - **Ethereum** - Primary blockchain network
 - **MetaMask** - Wallet integration
-- **Local Hardhat Network** - Development and testing
+- **Ethereum Sepolia** - Development and testing
 
 ## Quick Start Guide
 
@@ -184,7 +184,7 @@ Duration Tiers:
 • 7 - 30 days: +0%
 • 31 - 90 days: +1%
 • 91 - 180 days: +2%
-• 181 - 365 days: +3%
+• 181 - 365 days: +3
 ```
 
 ## Testing & Security
