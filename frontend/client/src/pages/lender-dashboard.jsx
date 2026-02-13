@@ -145,7 +145,7 @@ export default function LenderDashboard() {
   // Update filtered loans when loan requests change
   useEffect(() => {
     const withdrawnRequests = JSON.parse(localStorage.getItem('withdrawnLoanRequests') || '[]');
-    const filteredByWithdrawal = loanRequests.filter(loan => !withdrawnRequests.includes(loan.id));
+    const filteredByWithdrawal = loanRequests.filter(loan => !withdrawnRequests.includes(loan.id.toString()));
     setFilteredLoanRequests(filteredByWithdrawal);
   }, [loanRequests]);
 

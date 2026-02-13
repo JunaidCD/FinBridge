@@ -468,6 +468,7 @@ export const formatLoanData = (loan) => {
 
   return {
     ...loan,
+    id: loan.loanId?.toString() || loan.id?.toString() || '0',
     timeAgo,
     expectedReturn: `${expectedReturn} ETH`,
     dueAmountWei: dueAmountWei.toString(),
