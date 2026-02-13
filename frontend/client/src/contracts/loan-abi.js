@@ -1,6 +1,6 @@
 // contracts/loanContract.js
 
-// ✅ Updated ABI for enhanced FinBridgeLending smart contract
+// Updated ABI for enhanced FinBridgeLending smart contract
 export const LOAN_CONTRACT_ABI = [
   {
     "anonymous": false,

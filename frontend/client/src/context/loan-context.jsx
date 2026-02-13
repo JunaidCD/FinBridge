@@ -43,8 +43,8 @@ export function LoanProvider({ children }) {
       if (provider && account) {
         try {
           console.log('Initializing contract with provider and account:', account);
-      console.log('📋 Contract address being used:', LOAN_CONTRACT_ADDRESS);
-      console.log('🌐 Current network should be Sepolia (0xAA36A7)');
+      console.log('Contract address being used:', LOAN_CONTRACT_ADDRESS);
+      console.log('Current network should be Sepolia (0xAA36A7)');
           // Create ethers BrowserProvider from MetaMask provider
           const ethersProvider = new ethers.BrowserProvider(provider);
           const signer = ethersProvider.getSigner();
@@ -70,7 +70,7 @@ export function LoanProvider({ children }) {
       console.log('Setting up event listeners for contract');
       const listeners = setupEventListeners(contract, {
         onLoanRequestCreated: (loanData) => {
-          console.log('🎉 Event: New loan request created:', loanData);
+          console.log('Event: New loan request created:', loanData);
           toast({
             title: "New Loan Request",
             description: `${loanData.amount} ETH loan request created`,
@@ -79,10 +79,10 @@ export function LoanProvider({ children }) {
           
           // Refresh data when new loan is created
           setTimeout(async () => {
-            console.log('🔄 Event listener: Refreshing loan data...');
+            console.log('Event listener: Refreshing loan data...');
             await fetchActiveLoanRequests();
             await fetchUserLoans();
-            console.log('✅ Event listener: Data refresh complete');
+            console.log('Event listener: Data refresh complete');
           }, 2000);
         },
         onLoanFunded: (fundData) => {
@@ -151,36 +151,36 @@ export function LoanProvider({ children }) {
     }
 
     try {
-      console.log('🔍 Fetching active loan requests...');
-      console.log('📋 Contract address:', LOAN_CONTRACT_ADDRESS);
+      console.log('Fetching active loan requests...');
+      console.log('Contract address:', LOAN_CONTRACT_ADDRESS);
       
       // Check if contract is accessible
       try {
         const nextLoanId = await contract.nextLoanId();
-        console.log('✅ Contract is accessible, next loan ID:', nextLoanId.toString());
+        console.log('Contract is accessible, next loan ID:', nextLoanId.toString());
       } catch (contractError) {
-        console.error('❌ Contract is not accessible:', contractError);
+        console.error('Contract is not accessible:', contractError);
         setLoanRequests([]);
         return;
       }
       
       const loans = await contractUtils.getActiveLoanRequests(contract);
-      console.log('📊 Raw loans from contract:', loans);
-      console.log('📊 Number of loans returned:', loans?.length || 0);
+      console.log('Raw loans from contract:', loans);
+      console.log('Number of loans returned:', loans?.length || 0);
       
       if (!loans || loans.length === 0) {
-        console.log('⚠️ No active loan requests found');
+        console.log('No active loan requests found');
         setLoanRequests([]);
         return;
       }
       
       const formattedLoans = loans.map(formatLoanData);
-      console.log('🎯 Formatted loans:', formattedLoans);
+      console.log('Formatted loans:', formattedLoans);
       
       setLoanRequests(formattedLoans);
-      console.log('✅ Setting loan requests state with', formattedLoans.length, 'loans');
+      console.log('Setting loan requests state with', formattedLoans.length, 'loans');
     } catch (error) {
-      console.error('❌ Error fetching active loan requests:', error);
+      console.error('Error fetching active loan requests:', error);
       setLoanRequests([]);
     } finally {
       setIsLoading(false);
@@ -190,25 +190,25 @@ export function LoanProvider({ children }) {
   // Fetch user's loan requests
   const fetchUserLoans = async () => {
     if (!contract || !account) {
-      console.log('❌ Cannot fetch user loans - contract or account missing');
+      console.log('Cannot fetch user loans - contract or account missing');
       return;
     }
     
     try {
-      console.log('🔄 Fetching user loans...');
-      console.log('👤 User account:', account);
-      console.log('📋 Contract address:', contract.target || contract.address);
+      console.log('Fetching user loans...');
+      console.log('User account:', account);
+      console.log('Contract address:', contract.target || contract.address);
       
       const loans = await contractUtils.getUserLoanRequests(contract, account);
       const formattedLoans = loans.map(formatLoanData);
       
-      console.log('📊 Raw loans from contract:', loans);
-      console.log('🎯 Formatted loans:', formattedLoans);
-      console.log('📈 Setting userLoans state with', formattedLoans.length, 'loans');
+      console.log('Raw loans from contract:', loans);
+      console.log('Formatted loans:', formattedLoans);
+      console.log('Setting userLoans state with', formattedLoans.length, 'loans');
       
       setUserLoans(formattedLoans);
     } catch (error) {
-      console.error('❌ Error fetching user loans:', error);
+      console.error('Error fetching user loans:', error);
     }
   };
 
@@ -227,7 +227,7 @@ export function LoanProvider({ children }) {
 
   // Manual refresh function to force update all data
   const refreshAllData = async () => {
-    console.log('🔄 Manual refresh triggered...');
+    console.log('Manual refresh triggered...');
     setIsLoading(true);
     try {
       await fetchActiveLoanRequests();
@@ -282,7 +282,7 @@ export function LoanProvider({ children }) {
       await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Force refresh all data to ensure the new loan appears
-      console.log('🔄 REFRESHING data after loan creation...');
+      console.log('REFRESHING data after loan creation...');
       
       // First refresh - fetch from contract
       await fetchActiveLoanRequests();
@@ -297,7 +297,7 @@ export function LoanProvider({ children }) {
       await refreshWalletBalance();
       
       // Final verification
-      console.log('🔍 Final verification...');
+      console.log('Final verification...');
       const activeLoans = await contract.getActiveLoanRequests();
       console.log('Active loan IDs after refresh:', activeLoans);
 

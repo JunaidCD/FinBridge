@@ -36,10 +36,10 @@ export const checkContractDeployment = async (provider) => {
     const isDeployed = code !== '0x';
 
     if (isDeployed) {
-      console.log('✅ Contract is deployed at:', contractAddress);
+      console.log('Contract is deployed at:', contractAddress);
       return true;
     } else {
-      console.log('❌ Contract not found at:', contractAddress);
+      console.log('Contract not found at:', contractAddress);
       return false;
     }
   } catch (error) {
@@ -297,30 +297,30 @@ export const contractUtils = {
   // Get user's loan requests
   async getUserLoanRequests(contract, userAddress) {
     try {
-      console.log('🔍 Fetching user loans for address:', userAddress);
-      console.log('📋 Contract target:', contract.target || contract.address);
+      console.log('Fetching user loans for address:', userAddress);
+      console.log('Contract target:', contract.target || contract.address);
 
       const loanIds = await contract.getUserLoanRequests(userAddress);
-      console.log('📝 Received loan IDs:', loanIds);
-      console.log('📊 Loan IDs type:', typeof loanIds, 'Length:', loanIds?.length);
+      console.log('Received loan IDs:', loanIds);
+      console.log('Loan IDs type:', typeof loanIds, 'Length:', loanIds?.length);
 
       const loans = [];
 
       for (const loanId of loanIds) {
         try {
-          console.log(`🔎 Fetching loan details for ID ${loanId}...`);
+          console.log('Fetching loan details for ID', loanId, '...');
           const loan = await this.getLoanRequest(contract, loanId.toString());
-          console.log('✅ Loan details:', loan);
+          console.log('Loan details:', loan);
           loans.push(loan);
         } catch (error) {
-          console.error(`❌ Error getting user loan ${loanId}:`, error);
+          console.error('Error getting user loan', loanId, ':', error);
         }
       }
 
-      console.log('🎯 Final user loans array:', loans);
+      console.log('Final user loans array:', loans);
       return loans;
     } catch (error) {
-      console.error('❌ Error getting user loan requests:', error);
+      console.error('Error getting user loan requests:', error);
       throw error;
     }
   },

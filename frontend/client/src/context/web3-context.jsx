@@ -155,9 +155,9 @@ export function Web3Provider({ children }) {
         
         // Check if on correct network
         const chainId = await provider.request({ method: 'eth_chainId' });
-        console.log('🌐 Current network chainId:', chainId);
-        console.log('🌐 Expected network chainId:', ACTIVE_NETWORK.chainId);
-        console.log('🌐 Network match?', chainId === ACTIVE_NETWORK.chainId);
+        console.log('Current network chainId:', chainId);
+        console.log('Expected network chainId:', ACTIVE_NETWORK.chainId);
+        console.log('Network match?', chainId === ACTIVE_NETWORK.chainId);
         
         if (chainId !== ACTIVE_NETWORK.chainId) {
           // Switch to correct network
