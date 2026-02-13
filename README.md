@@ -150,23 +150,24 @@ npm run dev
 
 ```
 FinBridge/
-├── 📁 backend/
-│   ├── 📁 contracts/          # Solidity smart contracts
-│   ├── 📁 scripts/            # Deployment scripts
-│   ├── 📁 test/               # Contract tests
-│   ├── hardhat.config.js      # Hardhat configuration
+├── backend/
+│   ├── contracts/
+│   ├── scripts/
+│   ├── test/
+│   ├── hardhat.config.js
 │   └── package.json
-├── 📁 frontend/
-│   └── 📁 client/
-│       ├── 📁 src/
-│       │   ├── 📁 components/  # React components
-│       │   ├── 📁 pages/       # Page components
-│       │   ├── 📁 context/     # React context
-│       │   ├── 📁 contracts/   # Contract ABIs
-│       │   └── 📁 hooks/       # Custom hooks
-│       ├── package.json
-│       └── vite.config.js
-└── README.md
+├── frontend/
+│   ├── client/
+│   │   ├── src/
+│   │   │   ├── components/
+│   │   │   ├── context/
+│   │   │   ├── contracts/
+│   │   │   ├── pages/
+│   │   │   └── hooks/
+│   │   └── package.json
+│   └── package.json
+├── README.md
+└── SECURITY.md
 ```
 
 ## 🔧 Smart Contract Features
