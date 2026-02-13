@@ -662,4 +662,4 @@ export const LOAN_CONTRACT_ABI = [
 // IMPORTANT: Updated with new Sepolia deployment
 // Local Hardhat: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 // Sepolia: Updated contract address from .env
-export const LOAN_CONTRACT_ADDRESS = "0xEF029e7AD11e137Cd90189C6B07579094a4168a3".trim();
+export const LOAN_CONTRACT_ADDRESS = "0x0102b9dcB6fA2Adfa7E78e01A8669e4e5b7674FB".trim();

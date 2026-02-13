@@ -53,9 +53,17 @@ export default function BorrowerDashboard() {
     }
   }, [userLoans]);
 
-  // Fetch user loans when account connects
+  // Fetch user loans when account connects (with debouncing)
+  const lastFetchRef = useRef(0);
   useEffect(() => {
     if (account) {
+      const now = Date.now();
+      // Only fetch if at least 2 seconds have passed
+      if (now - lastFetchRef.current < 2000) {
+        console.log('Dashboard: Skipping fetch - too soon');
+        return;
+      }
+      lastFetchRef.current = now;
       console.log('Account connected, fetching user loans...');
       fetchUserLoans();
     }

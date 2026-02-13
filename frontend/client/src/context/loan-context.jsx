@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useWeb3 } from './web3-context';
 import { initializeContract, contractUtils, setupEventListeners, removeEventListeners, formatLoanData, checkContractDeployment, LOAN_CONTRACT_ADDRESS } from '../contracts';
 import { useToast } from '../hooks/use-toast';
@@ -20,6 +20,10 @@ export function LoanProvider({ children }) {
   // Initialize state with default values
   const [account, setAccount] = useState(null);
   const [provider, setProvider] = useState(null);
+  
+  // Debounce ref to prevent too many rapid requests
+  const lastFetchTime = useRef(0);
+  const fetchInProgress = useRef(false);
   
   // Get Web3 context - this will work because LoanProvider is wrapped by Web3Provider
   const { account: web3Account, provider: web3Provider, refreshWalletBalance } = useWeb3();
@@ -189,17 +193,39 @@ export function LoanProvider({ children }) {
 
   // Fetch user's loan requests
   const fetchUserLoans = async () => {
-    if (!contract || !account) {
-      console.log('Cannot fetch user loans - contract or account missing');
+    // Debounce: skip if we fetched recently (within 2 seconds)
+    const now = Date.now();
+    if (now - lastFetchTime.current < 2000) {
+      console.log('Skipping fetch - too soon since last fetch');
       return;
     }
+    
+    // Skip if already fetching
+    if (fetchInProgress.current) {
+      console.log('Skipping fetch - already in progress');
+      return;
+    }
+    
+    if (!contract || !account) {
+      console.log('Cannot fetch user loans - contract or account missing', { contract: !!contract, account });
+      return;
+    }
+    
+    fetchInProgress.current = true;
+    lastFetchTime.current = now;
     
     try {
       console.log('Fetching user loans...');
       console.log('User account:', account);
       console.log('Contract address:', contract.target || contract.address);
       
-      const loans = await contractUtils.getUserLoanRequests(contract, account);
+      // Ensure we're using the current signer to get the correct address
+      const ethersProvider = new ethers.BrowserProvider(provider);
+      const signer = await ethersProvider.getSigner();
+      const currentAddress = await signer.getAddress();
+      console.log('Current signer address:', currentAddress);
+      
+      const loans = await contractUtils.getUserLoanRequests(contract, currentAddress);
       const formattedLoans = loans.map(formatLoanData);
       
       console.log('Raw loans from contract:', loans);
@@ -209,6 +235,10 @@ export function LoanProvider({ children }) {
       setUserLoans(formattedLoans);
     } catch (error) {
       console.error('Error fetching user loans:', error);
+      // Reset the debounce on error so we can retry
+      lastFetchTime.current = 0;
+    } finally {
+      fetchInProgress.current = false;
     }
   };
 
@@ -257,8 +287,14 @@ export function LoanProvider({ children }) {
     try {
       setIsLoading(true);
       
+      // Get fresh ethers provider and signer
+      const ethersProvider = new ethers.BrowserProvider(provider);
+      const currentSigner = await ethersProvider.getSigner();
+      const currentAccount = await currentSigner.getAddress();
+      console.log('Current account for loan creation:', currentAccount);
+      
       // First, ensure wallet is connected to the contract
-      const isConnected = await contractUtils.isWalletConnected(contract, account);
+      const isConnected = await contractUtils.isWalletConnected(contract, currentAccount);
       if (!isConnected) {
         console.log('Connecting wallet to contract...');
         await contractUtils.connectWallet(contract);
@@ -284,16 +320,20 @@ export function LoanProvider({ children }) {
       // Force refresh all data to ensure the new loan appears
       console.log('REFRESHING data after loan creation...');
       
-      // First refresh - fetch from contract
-      await fetchActiveLoanRequests();
+      // Reset debounce to allow fetch
+      lastFetchTime.current = 0;
       
-      // Wait and refresh again
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      await fetchActiveLoanRequests();
+      // Get fresh signer address for fetching user loans
+      const freshSigner = await ethersProvider.getSigner();
+      const freshAccount = await freshSigner.getAddress();
+      console.log('Fresh account for fetching:', freshAccount);
       
-      // Also refresh user loans and funded loans
+      // Update account state
+      setAccount(freshAccount);
+      
+      // Single refresh - fetch user loans only once
       await fetchUserLoans();
-      await fetchFundedLoans();
+      await fetchActiveLoanRequests();
       await refreshWalletBalance();
       
       // Final verification

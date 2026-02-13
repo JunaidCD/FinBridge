@@ -184,7 +184,7 @@ Duration Tiers:
 • 7 - 30 days: +0%
 • 31 - 90 days: +1%
 • 91 - 180 days: +2%
-• 181 - 365 days: +3
+• 181 - 365 days: +3%
 ```
 
 ## Testing & Security
@@ -300,7 +300,7 @@ npm run build
 
 | Network | Chain ID | Contract Address | Explorer |
 |---------|----------|-------------------|----------|
-| Sepolia | 11155111 | `0xC9576B314CB8A4C9E41C082d0f02ae6E25019ab7` | [View on Etherscan](https://sepolia.etherscan.io/address/0xC9576B314CB8A4C9E41C082d0f02ae6E25019ab7) |
+| Sepolia | 11155111 | `0x0102b9dcB6fA2Adfa7E78e01A8669e4e5b7674FB` | [View on Etherscan](https://sepolia.etherscan.io/address/0x0102b9dcB6fA2Adfa7E78e01A8669e4e5b7674FB#code) |
 
 ### Local Deployment
 
