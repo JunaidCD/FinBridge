@@ -77,27 +77,13 @@ export function LoanProvider({ children }) {
             variant: "default",
           });
           
-          // AGGRESSIVE REFRESH - Multiple attempts to ensure loan appears
-          const aggressiveRefresh = async () => {
-            console.log('🔄 AGGRESSIVE REFRESH - Starting...');
-            console.log('Before aggressive refresh - Current loan requests:', loanRequests.length);
-            
-            // Refresh multiple times with delays
-            for (let i = 0; i < 3; i++) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              console.log(`🔄 Aggressive refresh attempt ${i + 1}/3`);
-              await fetchActiveLoanRequests();
-              console.log(`After attempt ${i + 1} - Loan requests:`, loanRequests.length);
-            }
-            
-            // Also refresh user loans
+          // Refresh data when new loan is created
+          setTimeout(async () => {
+            console.log('🔄 Event listener: Refreshing loan data...');
+            await fetchActiveLoanRequests();
             await fetchUserLoans();
-            console.log('User loans after aggressive refresh:', userLoans);
-            console.log('✅ AGGRESSIVE REFRESH COMPLETED');
-          };
-          
-          // Start aggressive refresh after short delay
-          setTimeout(aggressiveRefresh, 1000);
+            console.log('✅ Event listener: Data refresh complete');
+          }, 2000);
         },
         onLoanFunded: (fundData) => {
           console.log('Loan funded:', fundData);
@@ -107,9 +93,11 @@ export function LoanProvider({ children }) {
             variant: "default",
           });
           // Refresh data
-          fetchActiveLoanRequests();
-          fetchUserLoans();
-          fetchFundedLoans();
+          setTimeout(async () => {
+            await fetchActiveLoanRequests();
+            await fetchUserLoans();
+            await fetchFundedLoans();
+          }, 2000);
         },
         onLoanRepaid: (repayData) => {
           console.log('Loan repaid:', repayData);
@@ -119,8 +107,10 @@ export function LoanProvider({ children }) {
             variant: "default",
           });
           // Refresh data
-          fetchUserLoans();
-          fetchFundedLoans();
+          setTimeout(async () => {
+            await fetchUserLoans();
+            await fetchFundedLoans();
+          }, 2000);
         },
         onLoanRequestWithdrawn: (withdrawData) => {
           console.log('Loan request withdrawn:', withdrawData);
@@ -130,8 +120,10 @@ export function LoanProvider({ children }) {
             variant: "default",
           });
           // Refresh data
-          fetchActiveLoanRequests();
-          fetchUserLoans();
+          setTimeout(async () => {
+            await fetchActiveLoanRequests();
+            await fetchUserLoans();
+          }, 2000);
         }
       });
       setEventListeners(listeners);
@@ -268,7 +260,11 @@ export function LoanProvider({ children }) {
       // First, ensure wallet is connected to the contract
       const isConnected = await contractUtils.isWalletConnected(contract, account);
       if (!isConnected) {
+        console.log('Connecting wallet to contract...');
         await contractUtils.connectWallet(contract);
+        // Wait for wallet connection to be confirmed
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log('Wallet connected to contract');
       }
 
       // Create the loan request
@@ -281,51 +277,35 @@ export function LoanProvider({ children }) {
       console.log('Loan request created, result:', result);
       console.log('Transaction hash:', result.transactionHash);
 
-      // Immediately check if loan was created by checking next loan ID
-      const nextLoanIdBefore = await contract.nextLoanId();
-      console.log('Next loan ID after creation:', nextLoanIdBefore.toString());
+      // Wait for transaction confirmation and blockchain state update
+      console.log('Waiting for blockchain confirmation...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Force refresh all data to ensure the new loan appears
+      console.log('🔄 REFRESHING data after loan creation...');
+      
+      // First refresh - fetch from contract
+      await fetchActiveLoanRequests();
+      
+      // Wait and refresh again
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      await fetchActiveLoanRequests();
+      
+      // Also refresh user loans and funded loans
+      await fetchUserLoans();
+      await fetchFundedLoans();
+      await refreshWalletBalance();
+      
+      // Final verification
+      console.log('🔍 Final verification...');
+      const activeLoans = await contract.getActiveLoanRequests();
+      console.log('Active loan IDs after refresh:', activeLoans);
 
       toast({
         title: "Success",
-        description: "Loan request created successfully!",
+        description: "Loan request created and visible in marketplace!",
         variant: "default",
       });
-
-      // Add a small delay to ensure blockchain state is updated
-      console.log('Waiting for blockchain state update...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Force refresh all data multiple times to ensure it appears
-      console.log('🔄 FORCE REFRESHING data after loan creation...');
-      console.log('Before refresh - Current loan requests:', loanRequests.length);
-      
-      // First refresh
-      await fetchActiveLoanRequests();
-      console.log('After first refresh - New loan requests:', loanRequests.length);
-      
-      // Wait a bit and refresh again
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      await fetchActiveLoanRequests();
-      console.log('After second refresh - New loan requests:', loanRequests.length);
-      
-      // Also refresh user loans
-      await fetchUserLoans();
-      console.log('User loans after refresh:', userLoans);
-      
-      await fetchFundedLoans();
-      console.log('Funded loans after refresh:', fundedLoans);
-      
-      await refreshWalletBalance();
-      console.log('Data refresh completed');
-      
-      // Final verification - check contract directly
-      console.log('🔍 Final verification - checking contract directly...');
-      const nextLoanId = await contract.nextLoanId();
-      console.log('Next loan ID:', nextLoanId.toString());
-      
-      const allLoanIds = await contract.getActiveLoanRequests();
-      console.log('Active loan IDs from contract:', allLoanIds);
-      console.log('Active loan IDs count:', allLoanIds.length);
 
       return result;
     } catch (error) {
@@ -334,12 +314,10 @@ export function LoanProvider({ children }) {
       let errorMessage = 'Failed to create loan request';
       if (error.message.includes('Wallet not connected')) {
         errorMessage = 'Please connect your wallet to the contract first';
-      } else if (error.message.includes('Amount must be greater than 0')) {
-        errorMessage = 'Loan amount must be greater than 0';
-      } else if (error.message.includes('Interest rate must be between 1 and 100')) {
-        errorMessage = 'Interest rate must be between 1% and 100%';
-      } else if (error.message.includes('Duration must be greater than 0')) {
-        errorMessage = 'Loan duration must be greater than 0';
+      } else if (error.message.includes('Amount must be between')) {
+        errorMessage = 'Loan amount must be between 0.01 and 1000 ETH';
+      } else if (error.message.includes('Duration must be between')) {
+        errorMessage = 'Loan duration must be between 7 and 365 days';
       }
       
       toast({
