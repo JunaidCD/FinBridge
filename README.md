@@ -30,20 +30,9 @@ FinBridge is a revolutionary **decentralized peer-to-peer lending platform** bui
 
 ## Architecture Overview
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Smart Contract │    │   Blockchain    │
-│   (React App)   │◄──►│   (Solidity)     │◄──►│   (Ethereum)    │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-        │                        │                        │
-        ▼                        ▼                        ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ • Loan Creation │    │ • Loan Management│    │ • Transaction   │
-│ • Marketplace   │    │ • Fund Transfer  │    │   Recording     │
-│ • User Dashboard│    │ • Interest Calc  │    │ • State Storage │
-│ • Analytics     │    │ • Security Logic │    │ • Event Logs    │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
+
+![UI Preview](assets/overview.png)
+
 
 ## Tech Stack
 
