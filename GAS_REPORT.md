@@ -481,4 +481,4 @@ The FinBridge platform has been successfully optimized for gas efficiency while 
 
 **Report Version:** 1.0  
 **Last Updated:** February 11, 2026  
-**Author:** FinBridge Dev Team
+**Author:** Junaid Mollah
