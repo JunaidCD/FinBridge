@@ -39,7 +39,12 @@ export default {
       chainId: 11155111,
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
       gas: 3000000,
-      gasPrice: "auto"
+      gasPrice: "auto",
+      timeout: 60000,
+      httpHeaders: {
+        "Content-Type": "application/json",
+      },
+      pollingInterval: 2000
     }
   },
   etherscan: {
