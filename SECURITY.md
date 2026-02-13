@@ -386,7 +386,7 @@ All identified security vulnerabilities have been successfully remediated. The F
 
 ## Contact
 
-For security concerns, contact: security@finbridge.io
+For security concerns, contact: junaidmollah17@gmail.com 
 
 **Report Version:** 1.0  
 **Last Updated:** February 11, 2026
