@@ -1,4 +1,4 @@
-# 🌉 FinBridge - Decentralized Peer-to-Peer Lending Platform
+# FinBridge - Decentralized Peer-to-Peer Lending Platform
 
 <div align="center">
 
@@ -14,21 +14,21 @@
 
 </div>
 
-## 🚀 What is FinBridge?
+## What is FinBridge?
 
 FinBridge is a revolutionary **decentralized peer-to-peer lending platform** built on the Ethereum blockchain. It eliminates traditional financial intermediaries, allowing users to directly lend and borrow cryptocurrency in a trustless, transparent, and secure environment.
 
-### ✨ Key Features
+### Key Features
 
-- 🔐 **Smart Contract Security** - All transactions secured by audited smart contracts
-- 💰 **Auto-Calculated Interest Rates** - Dynamic pricing based on loan amount and duration
-- ⚡ **Instant Matching** - Real-time loan request and funding system
-- 📊 **Transparent Analytics** - Complete visibility into market metrics and performance
-- 🎯 **Advanced Filtering** - Sophisticated loan discovery and risk assessment tools
-- 💎 **No Intermediaries** - Direct peer-to-peer transactions without banks
-- 🌍 **Global Access** - Available 24/7 to anyone with an Ethereum wallet
+- Smart Contract Security - All transactions secured by audited smart contracts
+- Auto-Calculated Interest Rates - Dynamic pricing based on loan amount and duration
+- Instant Matching - Real-time loan request and funding system
+- Transparent Analytics - Complete visibility into market metrics and performance
+- Advanced Filtering - Sophisticated loan discovery and risk assessment tools
+- No Intermediaries - Direct peer-to-peer transactions without banks
+- Global Access - Available 24/7 to anyone with an Ethereum wallet
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -45,7 +45,7 @@ FinBridge is a revolutionary **decentralized peer-to-peer lending platform** bui
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **React 18** - Modern UI framework
@@ -65,7 +65,7 @@ FinBridge is a revolutionary **decentralized peer-to-peer lending platform** bui
 - **MetaMask** - Wallet integration
 - **Local Hardhat Network** - Development and testing
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Prerequisites
 
@@ -77,7 +77,7 @@ Before running FinBridge on Sepolia, ensure you have:
 - **Git**
 - **Sepolia ETH** (get from [faucet](https://sepoliafaucet.com))
 
-### 📦 Installation & Setup
+### Installation & Setup
 
 #### 1. Clone the Repository
 ```bash
@@ -115,7 +115,7 @@ npm run dev
 
 2. Import your wallet with Sepolia ETH
 
-### 🎯 Usage
+### Usage
 
 1. **Connect Wallet** - Connect your MetaMask wallet to the application
 2. **Create Loan Request** - Set amount (0.01-1000 ETH) and duration
@@ -123,9 +123,9 @@ npm run dev
 4. **Fund Loans** - Lend to borrowers and earn interest
 5. **Manage Portfolio** - Track your loans and earnings
 
-## 💡 Why Choose FinBridge?
+## Why Choose FinBridge?
 
-### 🏦 **Traditional Banking vs FinBridge**
+### Traditional Banking vs FinBridge
 
 | Feature | Traditional Banks | FinBridge |
 |---------|-------------------|-----------|
@@ -136,17 +136,17 @@ npm run dev
 | **Intermediary Fees** | High fees | Minimal gas fees only |
 | **Collateral Requirements** | Extensive documentation | Crypto-based |
 
-### 🌟 **Key Benefits**
+### Key Benefits
 
-- **💸 Lower Costs** - No banking fees, only minimal gas costs
-- **⚡ Speed** - Instant loan processing and funding
-- **🔒 Security** - Immutable smart contracts ensure trust
-- **🌐 Accessibility** - Open to anyone with crypto wallet
-- **📈 Better Returns** - Competitive interest rates for lenders
-- **🎯 Flexibility** - Customizable loan terms and amounts
-- **📊 Transparency** - All transactions visible on blockchain
+- Lower Costs - No banking fees, only minimal gas costs
+- Speed - Instant loan processing and funding
+- Security - Immutable smart contracts ensure trust
+- Accessibility - Open to anyone with crypto wallet
+- Better Returns - Competitive interest rates for lenders
+- Flexibility - Customizable loan terms and amounts
+- Transparency - All transactions visible on blockchain
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 FinBridge/
@@ -170,7 +170,7 @@ FinBridge/
 └── SECURITY.md
 ```
 
-## 🔧 Smart Contract Features
+## Smart Contract Features
 
 ### Core Functionality
 - **Loan Creation** - Users can create loan requests with custom terms
@@ -198,21 +198,20 @@ Duration Tiers:
 • 181 - 365 days: +3%
 ```
 
-## 📊 Testing & Security
+## Testing & Security
 
 ### Security Audit Results
 
 **Phase 2, Day 2 - Security Review:**
-- 🔴 **1 Critical** vulnerability fixed (Reentrancy)
-- 🟡 **2 Medium** issues resolved
-- 🟢 **4 Low/Gas** optimizations implemented
+- 1 Critical vulnerability fixed (Reentrancy)
+- 2 Medium issues resolved
+- 4 Low/Gas optimizations implemented
 
-**Key Security Features:**
-- ✅ ReentrancyGuard protection on all state-changing functions
-- ✅ 24-hour pause time lock for emergency stops
-- ✅ Proper interest rate calculation (basis points precision)
-- ✅ Comprehensive event emission for monitoring
-- ✅ Checks-Effects-Interactions pattern applied
+- ReentrancyGuard protection on all state-changing functions
+- 24-hour pause time lock for emergency stops
+- Proper interest rate calculation (basis points precision)
+- Comprehensive event emission for monitoring
+- Checks-Effects-Interactions pattern applied
 
 **Detailed Reports:**
 - [SECURITY.md](./SECURITY.md) - Full security audit report
@@ -230,7 +229,7 @@ Duration Tiers:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the smart contract tests:
 ```bash
@@ -244,7 +243,7 @@ cd frontend/client
 npm test
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Sepolia Testnet Deployment (Recommended)
 
@@ -280,9 +279,9 @@ npm run deploy:sepolia
 ```
 
 This will:
-- ✅ Deploy contract to Sepolia
-- ✅ Verify on Etherscan automatically
-- ✅ Output contract address and explorer link
+- Deploy contract to Sepolia
+- Verify on Etherscan automatically
+- Output contract address and explorer link
 
 #### 4. Update Frontend Contract Address
 
@@ -322,7 +321,7 @@ npx hardhat node
 npx hardhat run scripts/deploy.js --network localhost
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please follow these steps:
 
@@ -332,37 +331,37 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🛡️ Security
+## Security
 
 - Basic security mitigations implemented using OpenZeppelin libraries
 - Reentrancy protection and access controls in place
 - No formal security audit conducted
 - Use at your own risk for educational purposes
 
-## 📞 Support & Community
+## Support & Community
 
 - **Discord**: junaid_mollah_89812
 - **Twitter**: [@JunaidMollah5](https://twitter.com/JunaidMollah5)
 - **Email**: junaidmollah17@gmail.com
 
-## 🗺️ Roadmap
+## Roadmap
 
-- ✅ **Phase 1**: Core lending functionality
-- ✅ **Phase 2**: Advanced filtering and analytics
-- 🔄 **Phase 3**: Mobile app development
-- 📋 **Phase 4**: Multi-chain support
-- 📋 **Phase 5**: Governance token launch
-- 📋 **Phase 6**: Advanced DeFi integrations
+- Phase 1: Core lending functionality
+- Phase 2: Advanced filtering and analytics
+- Phase 3: Mobile app development
+- Phase 4: Multi-chain support
+- Phase 5: Governance token launch
+- Phase 6: Advanced DeFi integrations
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by Junaid**
+**Built with love by Junaid**
 
 
 </div>

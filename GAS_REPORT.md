@@ -107,10 +107,10 @@ function fundLoan(uint256 loanId) external payable {
 ```
 
 **Optimization Techniques:**
-- ✅ Cached storage variables locally
-- ✅ Grouped SSTORE operations
-- ✅ Minimized redundant SLOAD operations
-- ✅ Used storage pointers for user data
+- Cached storage variables locally
+- Grouped SSTORE operations
+- Minimized redundant SLOAD operations
+- Used storage pointers for user data
 
 ---
 
@@ -335,7 +335,7 @@ modifier onlyConnectedWallet() {
 
 ## Optimization Recommendations Summary
 
-### Implemented ✅
+### Implemented
 
 1. **Storage Variable Caching**
    - Cache frequently accessed storage variables locally
@@ -353,7 +353,7 @@ modifier onlyConnectedWallet() {
    - Indexed frequently queried parameters
    - Slight increase in gas but major off-chain benefits
 
-### Recommended for Future 🔮
+### Recommended for Future
 
 1. **Array Maintenance Pattern**
    - Maintain active loan array separately
@@ -448,10 +448,10 @@ At current optimization level:
 
 The FinBridge platform has been successfully optimized for gas efficiency while maintaining security and functionality. Key achievements:
 
-✅ **18% average gas savings** across all user operations  
-✅ **$136,875 projected annual savings** at current usage levels  
-✅ **Contract sizes under 54%** of limit for future upgrades  
-✅ **Zero breaking changes** to existing functionality  
+18% average gas savings across all user operations
+$136,875 projected annual savings at current usage levels
+Contract sizes under 54% of limit for future upgrades
+Zero breaking changes to existing functionality
 
 ### Next Steps
 
